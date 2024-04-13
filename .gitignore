@@ -1,0 +1,8 @@
+.emacs.desktop
+ backups/
+ custom.el
+ elpa
+ emacs-c-ide-demo
+ init.el~
+ transient
+ 
