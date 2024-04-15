@@ -1,8 +1,6 @@
 (require 'init-elpa)
 (require 'saveplace)
 (require-package 'rainbow-delimiters)
-(require-package 'flycheck)
-
 
 ;; Interactive search key bindings. By default, C-s runs
 ;; isearch-forward, so this swaps the bindings.
@@ -13,7 +11,6 @@
 
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
-(add-hook 'after-init-hook #'global-flycheck-mode)
 
 ;; When you visit a file, point goes to the last place where it
 ;; was when you previously visited the same file.

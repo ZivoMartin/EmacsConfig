@@ -6,7 +6,7 @@
 (require 'init-editing)
 (require 'init-miscellaneous)
 (require 'init-company-mode)
-
+(require 'init-ocaml)
                       
 (provide 'init)
 
@@ -19,10 +19,6 @@
       auto-save-file-name-transforms
       `((".*" "~/.emacs.d/auto-save-list/" t)))
 
-
-(add-hook 'compilation-mode-hook
-	  (lambda ()
-	    (evil-local-set-key 'motion (kbd "TAB") 'compilation-next-error)))
 
 (use-package magit
   :ensure t)
