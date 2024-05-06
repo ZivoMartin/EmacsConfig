@@ -1,0 +1,91 @@
+#ifndef MODEL_H
+#define MODEL_H
+
+#include "struct.h"
+
+/**
+ * @brief Render the entire game: display the button, the background and actualise the size of each element 
+ * @param env The env
+ */
+void render(Env * env);
+
+/**
+ * @brief Gonna clean the env and close sdl 
+ * @param env The env
+ */
+void clean(Env * env);
+
+/**
+ * @brief Gonna process a single event
+ * @param env The env
+ * @param e The event
+ */
+void process(Env * env, SDL_Event * e);
+
+/**
+ * @brief Gonna draw the grid of the game with the good size
+ * @param b the button associated with the grid
+ */
+void draw_game(Button* b);
+
+/**
+ * @brief Create and return a new rect with the same width and the same height (maybe we could change the name XD)
+ * @param x The x coord
+ * @param y The y coord
+ * @param w The width (so the height)
+ * @return The rect
+ */
+SDL_Rect init_rect(int x, int y, int w);
+
+/**
+ * @brief Return the sdl color with r, g, b
+ * @param r The red intensity
+ * @param g The greeb intensity
+ * @param b The blue intensity
+ * @param a The oppacity of the color
+ * @return The sdl color
+ */
+SDL_Color create_color(int r, int g, int b, int a);
+
+/**
+ * @brief Check if the given pointer is null, if yes exit with sdl_geterror msg
+ * @param p The pointer
+ * @return p itself
+ */
+void* cp(void* p);
+
+/**
+ * @brief Main loop: process the app, render the app and reloop
+ * @param env The env
+ * @return 0 if everything passed well otherwise an error code 
+ */
+int event_loop(Env* env);
+
+
+/**
+ * @brief Displays everything from the current scene (buttons, backgrounds...)
+ * @param env The environement
+*/
+
+void display_scenes(Env* env);
+
+
+
+/**
+ * @brief Displays the current by loading the texture of the scene
+ * @param env The environement
+*/
+void display_current_scene(Env* env);
+
+/**
+ * @brief Compute the coordinate of the top left corner of the grid.
+ * 
+ * @param env The env
+ * @param tileSize The size of a single tile
+ * @param x A memory spot to store the x
+ * @param y A memory spot to store the y
+ */
+void compute_decal_grid(Env* env, int tileSize, int* x, int* y);
+
+
+#endif 

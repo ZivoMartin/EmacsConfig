@@ -1,0 +1,16 @@
+#ifndef PNJ_SAFE
+#define PNJ_SAFE
+
+class Pnj {
+public:
+
+	Pnj();
+	~Pnj();
+
+	
+private:
+	
+};
+
+
+#endif

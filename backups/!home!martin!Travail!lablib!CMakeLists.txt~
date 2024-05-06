@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 2.8)
+
+
+project(lablib)
+
+include(sdl2.cmake)
+include_directories(${SDL2_ALL_INC})
+
+add_executable(lablib lib/lablib.c lib/button.c lib/env.c lib/scene.c lib/input.c lib/cursor.c)
+target_link_libraries(lablib ${SDL2_ALL_LIBS} game utilitary)
+

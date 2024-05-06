@@ -1,0 +1,6 @@
+#include "MainMenu.hpp"
+
+MainMenu::MainMenu(Env* env) : Renderer(env) {}
+MainMenu::~MainMenu() {}
+void MainMenu::render() {}
+void MainMenu::handdle_keypress() {}

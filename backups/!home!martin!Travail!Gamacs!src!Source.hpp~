@@ -1,0 +1,23 @@
+#ifndef SOURCE_SAFE
+#define SOURCE_SAFE
+
+#include "include.hpp"
+class Env;
+
+
+class Source {
+
+public:
+	Source(Env* env);
+	~Source();
+	Env* get_env() const;
+	SDL_Renderer* get_ren() const;
+	SDL_Window* get_win() const;
+	
+private:
+	Env* env;
+};
+
+
+
+#endif

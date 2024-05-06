@@ -1,0 +1,2 @@
+#ifndef UPDATABLE_SAFE
+#define UPDATABLE_SAFE

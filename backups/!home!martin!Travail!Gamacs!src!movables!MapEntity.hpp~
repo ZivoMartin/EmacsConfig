@@ -1,0 +1,28 @@
+#ifndef MAPENTITY_SAFE
+#define MAPENTITY_SAFE
+
+#include "../include.hpp"
+#include "Sprite.hpp"
+#include "Movable.hpp"
+#include "Collider.hpp"
+
+
+class MapEntity : public Sprite, public Movable, public Collider {
+
+public:
+	MapEntity(Env* env, const char* path, SDL_Point pos, float fx, float fy);
+	~MapEntity();
+	void draw(int x, int y) override;
+	void update() override;
+	SDL_Point* get_pos() override;
+	virtual void interact_with_player() {}
+	void set_interactible();
+	bool get_can_interact_with_player();
+
+private:
+	SDL_Point pos;
+	bool can_interact_with_player = false;
+	
+};
+
+#endif

@@ -1,0 +1,9 @@
+#ifndef SPRITE_DATA_SAFE
+#define SPRITE_DATA_SAFE
+
+#define SPRITE_DECALL_X 35
+#define SPRITE_DECALL_Y 15
+#define SPRITE_W 30
+#define SPRITE_H 50
+
+#endif

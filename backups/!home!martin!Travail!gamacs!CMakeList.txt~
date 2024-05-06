@@ -1,0 +1,83 @@
+cmake_minimum_required(VERSION 2.8)
+
+
+project(Mosaica01)
+
+include(sdl2.cmake)
+message(STATUS "SDL2 include dir: ${SDL2_ALL_INC}")
+message(STATUS "SDL2 all libraries: ${SDL2_ALL_LIBS}")
+include(CTest)
+enable_testing()
+
+
+set(CMAKE_C_FLAGS "-std=gnu99 -g -Wall --coverage")
+
+
+add_executable(game_text src/game_text.c)
+add_executable(game_test_jemy tests/game_test_jemy.c)
+add_executable(game_test_mzivojinovic tests/game_test_mzivojinovic.c)
+add_executable(game_test_raosseiran tests/game_test_raosseiran.c)
+add_executable(game_solve src/game_solve.c)
+
+add_library(game src/lib/game.c src/lib/game_aux.c src/lib/game_ext.c src/dataStructures/queue.c src/dataStructures/dblists.c src/lib/commun_functions.c src/lib/game_tools.c)
+add_library(utilitary src/lib/commun_functions.c src/dataStructures/queue.c src/dataStructures/dblists.c) # YOU NEED TO LINK THIS LIBRARY TO YOUR EXECUTABLES
+
+#Graphical interface
+include_directories(${SDL2_ALL_INC})
+add_executable(game_sdl interface/lib/model.c interface/main.c interface/lib/button.c interface/lib/env.c interface/lib/scene.c interface/lib/input.c interface/lib/cursor.c)
+target_link_libraries(game_sdl ${SDL2_ALL_LIBS} game utilitary)
+
+file(COPY res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY game_textfiles DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+# ----------------------------------TO READ VERY IMPORTANT-----------------------------------------------------
+
+# Dont forget to link the utilitary library to your executables or else when you compile with your own game
+# library it wont work, because we use functions to make our lives easier like free_game_tab for example
+# which are all defined in our cummon_fonctions.c. 
+
+#-----------------------------------------------------------------------------------------------
+
+target_link_libraries(game_text game utilitary)
+target_link_libraries(game_test_raosseiran game utilitary)
+target_link_libraries(game_test_mzivojinovic game utilitary)
+target_link_libraries(game_test_jemy game utilitary)
+target_link_libraries(game_solve game)
+
+add_test(test_raosseiran_dummy ./game_test_raosseiran dummy)
+add_test(test_raosseiran_game_new ./game_test_raosseiran game_new)
+add_test(test_raosseiran_game_new_empty ./game_test_raosseiran game_new_empty)
+add_test(test_raosseiran_game_copy ./game_test_raosseiran game_copy)
+add_test(test_raosseiran_game_equal ./game_test_raosseiran game_equal)
+add_test(test_raosseiran_game_delete ./game_test_raosseiran game_delete)
+add_test(test_raosseiran_game_set_constraint ./game_test_raosseiran game_set_constraint)
+add_test(test_raosseiran_game_new_ext ./game_test_raosseiran game_new_ext)
+add_test(test_raosseiran_game_new_empty_ext ./game_test_raosseiran game_new_empty_ext)
+add_test(test_raosseiran_game_get_wrapping ./game_test_raosseiran game_is_wrapping)
+add_test(test_raosseiran_game_load ./game_test_raosseiran game_load)
+
+add_test(test_mzivojinovic_dummy ./game_test_mzivojinovic dummy)
+add_test(test_mzivojinovic_game_default ./game_test_mzivojinovic game_default)
+add_test(test_mzivojinovic_game_default_solution ./game_test_mzivojinovic game_default_solution)
+add_test(test_mzivojinovic_game_print ./game_test_mzivojinovic game_print)
+add_test(test_mzivojinovic_game_restart ./game_test_mzivojinovic game_restart)
+add_test(test_mzivojinovic_game_won ./game_test_mzivojinovic game_won)
+add_test(test_mzivojinovic_game_play_move ./game_test_mzivojinovic game_play_move)
+add_test(test_mzivojinovic_game_undo ./game_test_mzivojinovic game_undo)
+add_test(test_mzivojinovic_game_redo ./game_test_mzivojinovic game_redo)
+add_test(test_mzivojinovic_game_redo ./game_test_mzivojinovic game_redo)
+add_test(test_mzivojinovic_game_nb_solution ./game_test_mzivojinovic game_nb_solutions)
+
+add_test(test_jemy_dummy ./game_test_jemy dummy)
+add_test(test_jemy_game_set_color ./game_test_jemy game_set_color)
+add_test(test_jemy_game_get_constraint ./game_test_jemy game_get_constraint)
+add_test(test_jemy_game_get_color ./game_test_jemy game_get_color)
+add_test(test_jemy_game_get_next_square ./game_test_jemy game_get_next_square)
+add_test(test_jemy_game_get_status ./game_test_jemy game_get_status)
+add_test(test_jemy_game_nb_neighbors ./game_test_jemy game_nb_neighbors)
+add_test(test_jemy_game_get_neighourhood ./game_test_jemy game_get_neighbourhood)
+add_test(test_jemy_game_nb_rows ./game_test_jemy game_nb_rows)
+add_test(test_jemy_game_nb_cols ./game_test_jemy game_nb_cols)
+add_test(test_jemy_game_save ./game_test_jemy game_save)
+add_test(test_jemy_game_solve ./game_test_jemy game_solve)
+

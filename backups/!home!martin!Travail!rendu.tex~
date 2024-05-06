@@ -1,0 +1,41 @@
+Exercice 3
+
+Je commence par modifier l'instruction set en ajoutant la loop, elle aura l'icode 15 qui lui est propre et l'ifun 0. Elle recevra egalement une valeur immédiate valC qui sera l'adresse ou l'on shouaite se brancher.
+
+// set_inst.png
+
+Je vais ensuite dans l'editeur faire implemanter un programme qui utilise la nouvelle instruction:
+
+// prog.png
+
+Maintenant, direction HCL pour décrire notre nouvelle instruction, pour le fetch, pas besoin de registre, besoin d'une valeur imédiate et evidemment l'instruction est valide.
+
+// fetch_loop.png
+
+Pour le decode, nous n'aurons pas besoin de srcA mais d'une srcB qui sera ecx que l'on shouaite decremanter de 1, la destination sera donc également ecx.
+
+// decode_loop.png
+
+Pour l'execute, on veut effectuer ecx = ecx - 1 donc A sera -1 et B sera valB (la valeur de ecx dans ce cas).
+
+// exec_loop.png
+
+
+Pour les accés mémoire il n'y à rien à faire, pas besoin de capture d'écran rien n'a été modifié.
+
+Et enfin la nouvelle adresse sera valC :
+
+// new_pc.png
+
+
+Exercice 4
+
+Nous allons créer les instruction loope et loopne, elles auront l'icode 15 (comme loop), loope l'ifun 3 et loopne l'ifun 4. Il s'agit des meme ifun que pour les instruction je jne.
+
+// set_inst_2.png
+
+
+
+Plus qu'a essayer notre instruction loopne en implemantant la fonction strncpy:
+
+// fonction.png

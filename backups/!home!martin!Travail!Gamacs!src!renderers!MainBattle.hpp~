@@ -1,0 +1,24 @@
+#ifndef SAFE_BATTLE
+#define SAFE_BATTLE
+
+#include "Renderer.hpp"
+#include "../include.hpp"
+
+class Sprite;
+class Player;
+
+class MainBattle : public Renderer {
+
+public:
+	MainBattle(Env* env);
+	~MainBattle();
+	void render() override;
+	void handdle_keypress() override;
+	
+private:
+	
+};
+
+
+#endif
+

@@ -1,0 +1,25 @@
+#include "Golem.hpp"
+#include "Player.hpp"
+#include "../Env.hpp"
+#define IMG_GOLEM_PATH "../res/orcSheet.png"
+#define GOLEM_WIDTH 0.12
+#define GOLEM_HEIGHT 0.15
+
+Golem::Golem(Env* env, SDL_Point pos) : Movable(env, IMG_GOLEM_PATH, pos, GOLEM_WIDTH, GOLEM_HEIGHT) {
+	set_current_sprite(0, 10);
+}
+
+Golem::~Golem() {}
+
+void Golem::action() {
+	this->update();
+	this->draw();
+}
+
+void Golem::draw() {
+	SDL_Point p = get_env()->convert_coord_to_pixels(*get_pos());
+	SDL_Point map_dim = get_env()->game_dim();
+	int w = get_width();
+	int h = get_height();
+	if (p.x > -w && p.y > -h && p.x < map_dim.x && p.y < map_dim.y) Movable::draw(p.x, p.y);
+}

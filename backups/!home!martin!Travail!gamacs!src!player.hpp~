@@ -1,0 +1,15 @@
+#ifndef SAFE_PLAYER
+#define SAFE_PLAYER
+
+class Player {
+
+public:
+	Player(Env* env);
+	~Player();
+	Env* get_env();
+private:
+	Env* env;
+	
+};
+
+#endif

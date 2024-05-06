@@ -1,0 +1,20 @@
+#include "Source.hpp"
+#include "Env.hpp"
+
+Source::Source(Env* env) {
+	this->env = env;
+}
+
+Source::~Source() {}
+
+Env* Source::get_env() const {
+	return env;
+}
+
+SDL_Renderer* Source::get_ren() const {
+	return get_env()->get_ren();
+}
+
+SDL_Window* Source::get_win() const {
+	return get_env()->get_win();
+}

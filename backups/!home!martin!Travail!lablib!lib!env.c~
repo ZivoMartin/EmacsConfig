@@ -1,0 +1,646 @@
+#include "../include/settings.h"
+#include <pthread.h>
+
+void undo(Button* b) {
+  Env* env = button_env(b);
+ game_undo(get_game(env));
+}
+
+void redo(Button* b) {
+  Env* env = button_env(b);
+ game_redo(get_game(env));
+}
+
+void restart(Button* b) {
+  Env* env = button_env(b);
+  game_restart(get_game(env));
+}
+
+void go_game(Button* b) {
+  Env* env = button_env(b);
+  change_scene(env, Game);
+}
+
+void go_setting(Button* b) {
+  Env* env = button_env(b);
+  change_scene(env, Settings);
+}
+
+void go_menu(Button* b) {
+  Env* env = button_env(b);
+  change_scene(env, Menu);
+}
+
+void* solve_thread(void* void_env) {
+  Env* env = void_env;
+  env->is_searching = true;
+  game_solve(get_game((Env*) env));
+  env->is_searching = false;
+  return NULL;
+}
+
+void solve(Button* b) {
+  Env* env = button_env(b);
+  pthread_create(&env->solve_thread, NULL, solve_thread, (void*) env);
+}
+
+void save_or_load(Button* b, bool is_save) {
+  char* txt = input_get_text(button_get_input(b));
+  char buffer[100];
+  char* path = GTF_PATH;
+  Input* inp = button_get_input(b);
+  Env* env = button_env(b);
+  int i = 0;
+  while (path[i]) {
+    buffer[i] = path[i];
+    i++;
+  }
+  int j = 0;
+  while (txt[j] && txt[j] != '|' && txt[j] != ' ') {
+    if (txt[j] == '/') {
+      input_set_placeholder_error(inp, BAD_CHAR_ERROR);
+      reset_txt(inp);
+      return;
+    }
+    buffer[i] = txt[j];
+    j++;
+    i++;
+  }
+  buffer[i] = 0;
+  if (is_save) 
+    game_save(get_game(env), buffer);
+  else {
+    game new_game = game_load(buffer);
+    if (new_game) {
+      game_delete(get_game(env));
+      set_game(env, game_load(buffer));
+      change_scene(env, Game);
+      input_change_placeholder(inp, DEFAULT_PLACEHOLDER);
+    }else{
+      input_set_placeholder_error(inp, GAME_NOT_EXISTS_ERROR);
+    }
+  }
+  reset_txt(inp);
+}
+
+void save(Button* b) {
+  save_or_load(b, true);
+}
+
+void load(Button* b) {
+  save_or_load(b, false);
+}
+
+void start_game(Button* b) {
+  new_game_button_pressed(b);
+  go_game(b);
+}
+
+
+#define NB_BUTTON_MENU 16
+#define NB_BUTTON_GAME 7
+#define NB_BUTTON_SETTINGS 7
+
+#define DEFAULT_BUTTON_WIDTH 0.08
+#define DEFAULT_BUTTON_HEIGHT 0.12
+
+#define DEFAULT_B_SIZE DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT
+#define FULL_TOP_RIGHT 0.25, 0.1
+
+#define CURSOR_DEFAULT_SIZE CURSOR_WIDTH, 0.03
+
+#define FULL 1
+
+#define CENTER_TOP 0.35, 0.3
+#define ALL_CENTER 0.35, 0.45
+#define CENTER_BOT 0.35, 0.6
+
+#define LEFT 0
+#define TOP 0
+#define BOT 0.85
+#define RIGHT 0.75
+#define CENTER 0.5
+#define LEFT_MIDDLE 0.35
+#define TOP_MIDDLE 0.1
+
+#define DECAL_INPUT 0
+#define MINOR_DECALL 0.02
+
+
+#define SETTINGS_BUTTON_SIZE 0.3, 0.1
+void init_setting_scene(Env* env){
+  Button** button_arr = cp(malloc(sizeof(Button*)*NB_BUTTON_SETTINGS));
+  button_arr[0] = create_button(env, CENTER_TOP, SETTINGS_BUTTON_SIZE, "res/backtomenu1.png", true, go_menu);
+  button_arr[1] = create_button(env, ALL_CENTER, SETTINGS_BUTTON_SIZE, "res/backtogame1.png", true, go_game);
+  button_arr[2] = create_button(env, CENTER_BOT, SETTINGS_BUTTON_SIZE, "res/quitgame1.png", true, quit_app);
+
+  Button* load_sleep_button = create_button(env, LEFT, TOP, DEFAULT_B_SIZE, "Load: ",false,sleeper_button);
+  button_change_color(load_sleep_button, create_color(BLACK_TEXT_COLOR, 0));
+  button_change_textColor(load_sleep_button, create_color(WHITE_TEXT_COLOR, 255));
+  button_arr[3] = load_sleep_button;
+
+  Button* save_sleep_button = create_button(env, LEFT, TOP + button_rheight(load_sleep_button)+MINOR_DECALL, DEFAULT_B_SIZE, "Save: ", false,sleeper_button);
+  button_change_color(save_sleep_button, create_color(BLACK_TEXT_COLOR, 0));
+  button_change_textColor(save_sleep_button, create_color(WHITE_TEXT_COLOR, 255));
+  button_arr[4] = save_sleep_button;
+
+  Button* save_inp = create_button(env, LEFT+button_rwidth(save_sleep_button)+DECAL_INPUT, button_ry(save_sleep_button), DEFAULT_B_SIZE, "",false, save);
+  make_as_input(save_inp, create_input(save_inp, DEFAULT_PLACEHOLDER));
+  button_arr[5] = save_inp;
+
+  Button* load_inp = create_button(env, LEFT+button_rwidth(load_sleep_button)+DECAL_INPUT, button_ry(load_sleep_button), DEFAULT_B_SIZE, "",false, load);
+  make_as_input(load_inp, create_input(load_inp, DEFAULT_PLACEHOLDER));
+  button_arr[6] = load_inp;
+  env->scene_arr[Settings] = create_scene(button_arr, NB_BUTTON_SETTINGS);
+}
+
+
+#define START_BUTTON_WIDTH 0.3
+#define START_BUTTON_HEIGHT 0.3
+#define START_BUTTON_SIZE START_BUTTON_WIDTH, START_BUTTON_HEIGHT
+
+typedef enum MenuButtonsIndex {
+  StartButton,
+  WrappingSleep,
+  WrappingFalse,
+  WrappingTrue,
+  NeighSleep,
+  NeighFull, 
+  NeighOrtho, 
+  NeighFullExclude, 
+  NeighOrthoExclude,
+  RowCursor,
+  ColCursor,
+  DifficultyCursor,
+  HardSleep,
+  EazySleep,
+  NbRowsIndication,  
+  NbColsIndication
+}MenuButtonsIndex;
+
+#define UNSELECTED_WIDTH 0.09
+#define UNSELECTED_HEIGHT 0.08
+
+#define SELECTED_WIDTH 0.11
+#define SELECTED_HEIGHT 0.10
+
+#define WRAPPING_CHOICE_Y 0.5
+#define NEIGH_CHOICE_Y 0.8
+
+#define CHOICE_START_X 0.1
+#define WRAPPING_DECALL 0.2
+#define NEIGH_DECALL 0.2
+
+#define CURSOR_Y 0.3
+#define ROW_CURSOR_X 0.1
+#define COL_CURSOR_X 0.25
+#define DIFF_CURSOR_X 0.8
+#define CURSOR_HEIGHT 0.3
+
+#define CURSOR_IND_W 0.045
+#define CURSOR_IND_H 0.03
+#define CURSOR_IND_SIZE CURSOR_IND_W, CURSOR_IND_H
+
+#define COMPUTE_CURSOR_IND_X(x) x-CURSOR_IND_W/4
+
+void init_menu_scene(Env* env){
+  Button** button_arr = cp(malloc(sizeof(Button*)*NB_BUTTON_MENU));
+  button_arr[0] = create_button(env, CENTER-(START_BUTTON_WIDTH/2), TOP_MIDDLE , START_BUTTON_SIZE, START_PATH,true, start_game);
+  button_arr[WrappingSleep] = create_button(env, CHOICE_START_X, WRAPPING_CHOICE_Y, DEFAULT_B_SIZE, "Wrapping", false, sleeper_button);
+  button_arr[WrappingTrue] = create_button(env, CHOICE_START_X+WRAPPING_DECALL, WRAPPING_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "Yes", false, change_wrapping);
+  unselect_button(button_arr[WrappingTrue]);
+  button_arr[WrappingFalse] = create_button(env, CHOICE_START_X+2*WRAPPING_DECALL, WRAPPING_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "No", false, change_wrapping);
+  select_button(button_arr[WrappingFalse]);
+
+  button_arr[NeighSleep] = create_button(env, CHOICE_START_X, NEIGH_CHOICE_Y, DEFAULT_B_SIZE, "Neigh", false, sleeper_button);
+  button_arr[NeighFull] = create_button(env, CHOICE_START_X+NEIGH_DECALL, NEIGH_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "Full", false, change_neighborhood);
+  button_arr[NeighOrtho] = create_button(env, CHOICE_START_X+NEIGH_DECALL*2, NEIGH_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "Ortho", false, change_neighborhood);
+  button_arr[NeighFullExclude] = create_button(env, CHOICE_START_X+NEIGH_DECALL*3, NEIGH_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "Full Exclude", false, change_neighborhood);
+  button_arr[NeighOrthoExclude] = create_button(env, CHOICE_START_X+NEIGH_DECALL*4, NEIGH_CHOICE_Y, UNSELECTED_WIDTH, UNSELECTED_HEIGHT, "Ortho Exclude", false, change_neighborhood);
+  select_button(button_arr[NeighFull]);
+  unselect_button(button_arr[NeighFullExclude]);
+  unselect_button(button_arr[NeighOrtho]);
+  unselect_button(button_arr[NeighOrthoExclude]);
+
+  Button* row_cursor = create_button(env, ROW_CURSOR_X, CURSOR_Y, CURSOR_DEFAULT_SIZE, "", false, sleeper_button);
+  make_as_cursor(row_cursor, CURSOR_HEIGHT, row_col_cursor_is_moving, change_nb_rows);
+  button_arr[9] = row_cursor;
+
+  Button* col_cursor = create_button(env, COL_CURSOR_X, CURSOR_Y, CURSOR_DEFAULT_SIZE, "", false, sleeper_button);
+  make_as_cursor(col_cursor, CURSOR_HEIGHT, row_col_cursor_is_moving, change_nb_cols);
+  button_arr[10] = col_cursor;
+
+  Button* diff_cursor = create_button(env, DIFF_CURSOR_X, CURSOR_Y, CURSOR_DEFAULT_SIZE, "", false, sleeper_button);
+  make_as_cursor(diff_cursor, CURSOR_HEIGHT, NULL, change_difficulty);
+  button_arr[DifficultyCursor] = diff_cursor;
+
+  float ind_y = CURSOR_Y- (CURSOR_HEIGHT/2) - CURSOR_IND_H - MINOR_DECALL;
+
+  button_arr[HardSleep] = create_button(env, COMPUTE_CURSOR_IND_X(DIFF_CURSOR_X), ind_y, CURSOR_IND_SIZE, "Hard", false, sleeper_button);
+  button_arr[EazySleep] = create_button(env, COMPUTE_CURSOR_IND_X(DIFF_CURSOR_X), CURSOR_Y+ (CURSOR_HEIGHT/2) + CURSOR_IND_H + MINOR_DECALL, CURSOR_IND_SIZE, "Easy", false, sleeper_button);
+  button_arr[NbRowsIndication] = create_button(env, COMPUTE_CURSOR_IND_X(ROW_CURSOR_X), ind_y, CURSOR_IND_SIZE, "Nb rows: 5", false, sleeper_button);
+  button_arr[NbColsIndication] = create_button(env, COMPUTE_CURSOR_IND_X(COL_CURSOR_X), ind_y, CURSOR_IND_SIZE, "Nb cols: 5", false, sleeper_button);
+  env->scene_arr[Menu] = create_scene(button_arr, NB_BUTTON_MENU);
+}
+
+void select_button(Button* b) {
+    button_change_color(b, create_color(SELECTED_COLOR, DEFAULT_BUTTON_OPPACITY));
+    button_set_rw(b, SELECTED_WIDTH);
+    button_set_rh(b, SELECTED_HEIGHT);
+}
+
+void unselect_button(Button* b) {
+    button_change_color(b, create_color(UNSELECTED_COLOR, DEFAULT_BUTTON_OPPACITY));
+    button_set_rw(b, UNSELECTED_WIDTH);
+    button_set_rh(b, UNSELECTED_HEIGHT); 
+}
+
+
+
+#define GRID_BUTTON_INDEX 0
+#define NEW_GAME_BUTTON_DIM 0.25, 0.1
+void init_game_scene(Env* env) {
+  Button** button_arr = cp(malloc(sizeof(Button*)*NB_BUTTON_GAME));
+  button_arr[GRID_BUTTON_INDEX] = create_button(env, CENTER, TOP, DEFAULT_B_SIZE, "",false, click_on_grid); // This one is special and gonna be dynamically compute
+  set_display(button_arr[GRID_BUTTON_INDEX], draw_game);
+  Button* restart_button = create_button(env, CENTER-(DEFAULT_BUTTON_WIDTH/2), BOT, DEFAULT_B_SIZE, RESTART_PATH,true, restart);
+  button_arr[1] = create_button(env, button_rx(restart_button)-DEFAULT_BUTTON_WIDTH-MINOR_DECALL, BOT, DEFAULT_B_SIZE, UNDO_PATH,true, undo);
+  button_arr[2] = create_button(env, button_rx(restart_button)+DEFAULT_BUTTON_WIDTH+MINOR_DECALL, BOT, DEFAULT_B_SIZE, REDO_PATH, true, redo);
+  button_arr[3] = restart_button;
+  button_arr[4] = create_button(env, FULL-DEFAULT_BUTTON_WIDTH, TOP, DEFAULT_B_SIZE, SETTING_PATH, true, go_setting);
+  button_arr[5] = create_button(env, LEFT, TOP, DEFAULT_B_SIZE, SOLVE_PATH, true, solve);
+  button_arr[6] = create_button(env, button_rx(restart_button), TOP, DEFAULT_B_SIZE, NEW_GAME_PATH,true, new_game_button_pressed);
+  env->scene_arr[Game] = create_scene(button_arr, NB_BUTTON_GAME);
+}
+
+void init_scenes_backgrounds(Env* env){
+  char* paths[Nb_Scene] = {BACKGROUND_MENU, GAME_BACKGROUND, BACKGROUND_SETTINGS};
+  for(int i = 0; i < Nb_Scene; i++)
+    set_scene_background(env, get_scene(env, i), paths[i]);
+  
+}
+
+
+void init_scenes(Env* env) {
+  init_game_scene(env);
+  init_menu_scene(env);
+  init_setting_scene(env);
+  init_scenes_backgrounds(env);
+}
+
+
+void kpress(Env* env, char c) {
+  for(int i=0; i<nb_button(env); i++) {
+    Input* inp = button_get_input(get_button(env, i));
+    if (input_is_active(inp)) {
+      input_new_char(inp, c);
+    }
+  }
+}
+
+void mouse_move(Env* env, SDL_Point mp) {
+  button_move_cursor(get_active_cursor(env), mp);
+}
+
+void click_release(Env* env) {
+  button_desactivate_cursor(get_active_cursor(env));
+}
+
+void save_number_texture(Env* env, SDL_Texture** t, int i, int r, int g, int b) {
+    char numb[2] = {48+i, 0};   // Is equivalent to the formated string "$i\0"
+    SDL_Surface* surf = TTF_RenderText_Blended(env->font, numb, (SDL_Color){r, g, b, DEFAULT_OPPACITY});  // blended rendering for ultra nice text
+    *t = SDL_CreateTextureFromSurface(get_ren(env), surf);
+    SDL_FreeSurface(surf);
+}
+
+#define NB_DIGIT 10
+void init_numbers_texture(Env* env) {
+  for(int i = 0; i<NB_DIGIT; i++) {
+    save_number_texture(env, &env->numbers[BLACK_TEXT_INDEX][i], i, WHITE_TEXT_COLOR);
+    save_number_texture(env, &env->numbers[WHITE_TEXT_INDEX][i], i, BLACK_TEXT_COLOR);
+    save_number_texture(env, &env->numbers[SATISFIED_INDEX][i], i, SATISFIED_COLOR);
+    save_number_texture(env, &env->numbers[ERROR_INDEX][i], i, ERROR_COLOR);
+  }
+}
+
+
+
+void init_frames_Array(Env* env){
+  char* frame_paths[3] = {"res/frameEmpty.png", "res/frameWhite.png", "res/frameBlack.png"};
+  for(int i = 0; i < NB_FRAMES; i++){
+    SDL_Surface* buffer = cp(IMG_Load(frame_paths[i]));
+    env->frame_textures[i] = cp(SDL_CreateTextureFromSurface(get_ren(env), buffer));
+    SDL_FreeSurface(buffer);
+  }
+}
+
+
+
+Env* init(SDL_Window *win, SDL_Renderer *ren, char * filename) {
+  Env *env = malloc(sizeof(struct Env_t));
+  SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+  env->current_scene = Menu;
+  env->running = true;
+  if (filename == NULL || filename[0] == '\0') {
+    env->g = game_default();
+  } else {
+    env->g = cp(game_load(filename));
+  }
+  env->is_searching = false;
+  env->ren = ren;
+  env->win = win;
+  init_frames_Array(env);
+  if (TTF_Init() != 0) ERROR("Error: TTF_Init (%s)", SDL_GetError());
+  env->font = cp(TTF_OpenFont(FONT, FONTSIZE));
+  TTF_SetFontStyle(env->font, TTF_STYLE_NORMAL);
+  init_numbers_texture(env);
+  init_scenes(env);
+  return env;
+}
+
+#define FIRST_UNVALID_ZONE 0.2
+#define SECOND_UNVALID_ZONE 0.8
+
+bool is_on_valid_tile_part(SDL_Point c, int tileSize, int i, int j) {
+  c.x -= j*tileSize;
+  c.y -= i*tileSize;
+  return c.x > tileSize*FIRST_UNVALID_ZONE && c.x < tileSize*SECOND_UNVALID_ZONE && c.y > tileSize*FIRST_UNVALID_ZONE && c.y < tileSize*SECOND_UNVALID_ZONE;
+}
+
+void stop_the_search(Env* env) {
+  if (env->is_searching) {
+    int s = pthread_cancel(env->solve_thread);
+    if (s != 0) {
+      printf("Error during the cancel of the thread\n");
+    }
+    //pthread_join(env->solve_thread, NULL);
+  }
+}
+
+void click_on_grid(Button* b) {
+  Env* env = button_env(b);
+  SDL_Point c = get_last_coordinate(env);
+  int tileSize = compute_ts(env);
+  int decalWidth, decalHeight;
+  compute_decal_grid(button_env(b), tileSize, &decalWidth,&decalHeight);
+  c.x -= decalWidth;
+  c.y -= decalHeight;
+  int i = ((float)(c.y)/(float)(game_nb_rows(get_game(env))*tileSize))*game_nb_rows(get_game(env));
+  int j = ((float)(c.x)/(float)(game_nb_cols(get_game(env))*tileSize))*game_nb_cols(get_game(env));
+  if (is_on_valid_tile_part(c, tileSize, i, j)) {
+    if (game_get_color(get_game(env), i, j) == WHITE) {
+      game_play_move(get_game(env), i, j, BLACK);
+    } else if (game_get_color(get_game(env), i, j) == BLACK) {
+      game_play_move(get_game(env), i, j, EMPTY);
+    }else {
+      game_play_move(get_game(env), i, j, WHITE);
+    }
+  }
+}
+
+
+bool try_to_click_on_grid(Button* b, SDL_Point c) {
+    input_set_activity(button_get_input(b), false);
+    Env* env = button_env(b);
+    int tileSize = compute_ts(env);
+    int decalWidth, decalHeight;
+    compute_decal_grid(env, tileSize, &decalWidth, &decalHeight);
+    if (!env->is_searching && c.x > decalWidth && c.x < decalWidth+tileSize*game_nb_cols(get_game(env)) && 
+         c.y > decalHeight && c.y < decalHeight + tileSize*game_nb_rows(get_game(env))) {
+            (*b->action)(b);
+            return true;
+        }
+
+    return false;
+}
+
+
+void new_clic(Env* env) {
+  int n = nb_button(env);
+  for(int i=0; i<n; i++) {
+    if (get_scene_index(env) == Game && i == GRID_BUTTON_INDEX) {
+      try_to_click_on_grid(get_button(env, GRID_BUTTON_INDEX), get_last_coordinate(env));
+    }else{
+      Scene* previous_scene = get_current_scene(env);
+      try_to_click(get_button(env, i), get_last_coordinate(env));
+      if (previous_scene != get_current_scene(env)) break;  // We stop only if there is a scene change, otherwise we continue to try to click.
+    }
+  }
+}
+
+void destroy_env(Env* env){
+  for(SceneIndex i=0; i<Nb_Scene; i++) {
+    destroy_scene(get_scene(env, i));
+  }
+
+  if (!env->is_searching) game_delete(get_game(env));   // The only case where we don't free this game is when the user quits the app during the solve. But it doesn't matter because its the end of the program.
+  SDL_DestroyRenderer(get_ren(env));
+  SDL_DestroyWindow(win(env));
+  TTF_CloseFont(get_font(env));
+}
+
+TTF_Font* get_font(Env* env) {
+  return env->font;
+}
+
+SDL_Window* win(Env* env) {
+  return env->win;
+}
+
+SDL_Renderer* get_ren(Env* env) {
+  return env->ren;
+}
+
+SDL_Point get_last_coordinate(Env* env) {
+  SDL_Point res = {env->last_x, env->last_y};
+  return res;
+}
+
+void set_last_coordinate(Env* env, SDL_Point mouse) {
+  env->last_x = mouse.x;
+  env->last_y = mouse.y;
+}
+
+bool running(Env* env) {
+  return env->running;
+}
+
+// Check if the given scene index is valid
+void check_scene(SceneIndex i) {
+  if (i == Nb_Scene) {
+    fprintf(stderr, "Scene index out of range\n");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void change_scene(Env* env, SceneIndex new_scene) {
+  check_scene(new_scene);
+  env->current_scene = new_scene;
+}
+
+Scene* get_scene(Env* env, SceneIndex i) {
+  check_scene(i);
+  return env->scene_arr[i];
+}
+
+SceneIndex get_scene_index(Env* env)  {
+  return env->current_scene;
+}
+
+Scene* get_current_scene(Env* env) {
+  return env->scene_arr[get_scene_index(env)];
+}
+
+
+void sleeper_button(Button* b){
+  // Do nothing, is use by the button used as a simple text
+}
+
+void quit_app(Button* b) {
+  stop_the_search(button_env(b));
+  button_env(b)->running = false;
+}
+
+int w_height(Env* env) {
+  return env->h;
+}
+
+void set_game(Env* env, game g) {
+  env->g = g;
+}
+
+int w_width(Env* env) {
+  return env->w;
+}
+
+game get_game(Env* env) {
+  return env->g;
+}
+
+Button* get_button(Env* env, int index) {
+  return scene_get_button(get_current_scene(env), index);
+}
+
+Button* get_active_input(Env* env) {
+  for(int i = 0; i<nb_button(env); i++) {
+    Button* b = get_button(env, i);
+    if (input_is_active(button_get_input(b))) return b;
+  }
+  return NULL;
+}
+
+Button* get_active_cursor(Env* env) {
+  for(int i = 0; i<nb_button(env); i++) {
+    Button* b = get_button(env, i);
+    if (cursor_is_active(button_get_cursor(b))) return b;
+  }
+  return NULL;
+}
+
+
+void activate_input(Env* env) {
+  Button* b = get_active_input(env);
+  if(b) {
+    Input* inp = button_get_input(b);
+    input_set_activity(inp, false);
+    (*inp->action)(b);
+  }
+}
+
+int nb_button(Env* env) {
+  return scene_nb_buttons(get_current_scene(env));
+}
+
+#define DEFAULT_BLACK_RATE 0.5
+#define DEFAULT_CONSTRAINT_RATE 0.4
+
+void change_current_game(Env* env, int rows, int cols) {
+  game old = env->g;
+  env->g = game_random(rows, cols, old->wrapping, game_get_neighbourhood(old),
+                 false, DEFAULT_BLACK_RATE, DEFAULT_CONSTRAINT_RATE);
+  game_delete(old);
+}
+
+void new_game_button_pressed(Button* b){
+  game g = get_game(button_env(b));
+  change_current_game(button_env(b), game_nb_rows(g), game_nb_cols(g));
+}
+
+#define MAX_SIZE 10
+#define MIN_SIZE 2
+
+void change_nb_rows(Button* b) {
+  Env* env = button_env(b);
+  int new_rows = cursor_value(button_get_cursor(b)) * MAX_GAME_SIZE;
+  change_current_game(env, new_rows, game_nb_cols(get_game(env)));
+}
+
+void change_nb_cols(Button* b) {
+  Env* env = button_env(b);
+  int new_cols = cursor_value(button_get_cursor(b)) * MAX_GAME_SIZE;
+  change_current_game(env, game_nb_rows(get_game(env)), new_cols);
+  
+}
+
+
+void row_col_cursor_is_moving(Button* b) {
+  char new_txt[] = {'N', 'b', ' ', 'c', 'o', 'l', 's', ' ', ':', ' ', '\0', '\0', '\0'};
+  Env* env = button_env(b);
+  Button* sleep_b = get_button(env, NbColsIndication);
+  if (b == get_button(button_env(b), RowCursor)) {
+    new_txt[3] = 'r';
+    new_txt[5] = 'w';
+    sleep_b = get_button(env, NbRowsIndication);
+  }
+  int new_val = MAX_GAME_SIZE*cursor_value(button_get_cursor(b)); 
+  new_txt[10] = '0' + new_val;
+  if (new_val >= 10) {
+    new_txt[10] = '0' + (new_val / 10);
+    new_txt[11] = '0' + (new_val % 10);
+  }
+  SDL_Surface* surf = TTF_RenderText_Blended(get_font(env), new_txt, create_color(WHITE_TEXT_COLOR, DEFAULT_TEXT_OPPACITY));  
+  button_change_texture(sleep_b, SDL_CreateTextureFromSurface(get_ren(env), surf));
+  SDL_FreeSurface(surf);
+}
+
+
+void change_neighborhood(Button* b) {
+  Env* env = button_env(b);
+  game g = get_game(env);
+  for(MenuButtonsIndex i = NeighFull; i<=NeighOrthoExclude; i++){ 
+    Button* the_b = get_button(env, i);
+    if (the_b == b){
+      g->neigh = NeighFull-i;
+      select_button(the_b);
+    } else{
+      unselect_button(the_b);
+    }
+  }
+}
+
+
+void change_wrapping(Button* b) {
+  Env* env = button_env(b);
+  game g = get_game(env);
+  Button* wf = get_button(env, WrappingFalse);
+  Button* wt = get_button(env, WrappingTrue);
+  if (b == wf) {
+    g->wrapping = false;
+    select_button(wf);
+    unselect_button(wt);
+  }else{
+    g->wrapping = true;
+    select_button(wt);
+    unselect_button(wf);
+  }
+}
+
+
+SDL_Texture* get_frame_texture(Env* env, color c){
+  return env->frame_textures[c];
+}
+
+void change_difficulty(Button* b) {
+  game g = get_game(button_env(b));
+  change_current_game(button_env(b), game_nb_rows(g), game_nb_cols(g));
+}
