@@ -1,5 +1,13 @@
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
+(when (>= emacs-major-version 24)
+  (progn
+    ;; load emacs 24's package system.
+    (require 'package)
+    ;; Add MELPA repository.
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+  (when (< emacs-major-version 27) (package-initialize)))
+
 (require 'init-elpa)
 (require 'init-exec-path)
 (require 'init-ui)
@@ -10,6 +18,7 @@
                       
 (provide 'init)
 
+(package-install 'go-mode )
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
