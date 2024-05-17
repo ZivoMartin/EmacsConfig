@@ -10,15 +10,20 @@
 
 (require 'init-elpa)
 (require 'init-exec-path)
-(require 'init-ui)
 (require 'init-editing)
 (require 'init-miscellaneous)
 (require 'init-company-mode)
+(require 'init-ui)
 (require 'init-ocaml)
                       
 (provide 'init)
 
 (package-install 'go-mode )
+
+(unless (version< emacs-version "24")
+  (add-to-list 'load-path "/home/martin/.emacs.d/zig-mode/")
+  (autoload 'zig-mode "zig-mode" nil t)
+  (add-to-list 'auto-mode-alist '("\\.zig\\'" . zig-mode)))
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
@@ -130,3 +135,13 @@
 
 ;; enable undoing window changes
 (winner-mode t)
+(require 'multiple-cursors)
+
+(global-set-key (kbd "M-n") 'mc/edit-lines)
+
+
+(global-set-key (kbd "C-x DEL")
+                (lambda ()
+                  (interactive)
+                  (execute-kbd-macro (kbd "C-SPC C-a DEL"))))
+
