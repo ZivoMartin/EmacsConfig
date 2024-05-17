@@ -1,9 +1,0 @@
-#include "MainBattle.hpp"
-
-MainBattle::MainBattle(Env* env) : Renderer(env) {}
-
-MainBattle::~MainBattle() {}
-
-void MainBattle::render() {}
-
-void MainBattle::handdle_keypress() {}

@@ -1,7 +1,0 @@
-#include "TxtBubble.hpp"
-
-#define BUBBLE_SIZE 0.2
-
-TxtBubble::TxtBubble(Env* env, const char* txt, SDL_Point p) : Sprite
-TxtBubble::~TxtBubble();
-void TxtBubble::update() override;

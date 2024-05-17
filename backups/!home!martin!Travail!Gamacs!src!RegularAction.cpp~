@@ -1,4 +1,0 @@
-#include "RegularAction.hpp"
-
-RegularAction(int cd, void (Env::*action)(), int* now);
-void try_do();

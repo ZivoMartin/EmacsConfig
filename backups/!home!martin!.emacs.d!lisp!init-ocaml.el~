@@ -1,5 +1,0 @@
-(require 'init-elpa)
-(use-package tuareg
-  :ensure t
-  :hook (tuareg-mode . lsp-deferred))
-(provide 'init-ocaml)

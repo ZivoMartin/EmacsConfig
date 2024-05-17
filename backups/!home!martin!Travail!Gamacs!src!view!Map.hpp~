@@ -1,7 +1,0 @@
-#ifndef MAP_SAFE
-#define MAP_SAVE
-
-class Env;
-
-
-#endif

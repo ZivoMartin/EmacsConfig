@@ -1,5 +1,0 @@
-#include "Pnj.hpp"
-
-Pnj::Pnj() {}
-
-Pnj::~Pnj() {}
