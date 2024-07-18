@@ -15,10 +15,39 @@
 (require 'init-company-mode)
 (require 'init-ui)
 (require 'init-ocaml)
-                      
-(provide 'init)
 
-(package-install 'go-mode )
+(provide 'init)
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(require 'use-package)
+
+(use-package rust-mode
+  :ensure t
+  :mode "\\.rs\\'"
+  :hook (rust-mode . lsp))
+
+(use-package lsp-mode
+  :ensure t
+  :commands lsp
+  :hook ((lsp-mode . lsp-ui-mode)
+         (lsp-mode . company-mode))
+  :custom
+  (lsp-rust-analyzer-server-command '("rust-analyzer"))
+  (lsp-ui-sideline-enable nil)
+  (lsp-ui-doc-enable nil)
+  (company-idle-delay 0.2)
+  (company-minimum-prefix-length 1)
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-rust-analyzer-diagnostics-enable-experimental t)
+  (lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+  (lsp-rust-analyzer-proc-macro-enable t))
+
 
 (unless (version< emacs-version "24")
   (add-to-list 'load-path "/home/martin/.emacs.d/zig-mode/")
@@ -69,6 +98,16 @@
 (use-package rust-mode
   :ensure t)
 
+(add-to-list 'load-path "rust-mode")
+(autoload 'rust-mode "rust-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+
+(setq rust-format-on-save t)
+(add-hook 'rust-mode-hook
+          (lambda () (prettify-symbols-mode)))
+(add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
+
 (use-package rust-ts-mode
   :ensure t
   :after (eglot)
@@ -79,6 +118,7 @@
   :config
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode))
   (add-to-list 'eglot-server-programs '(rust-ts-mode . ("rust-analyzer"))))
+(add-hook 'rust-mode-hook #'lsp)
 
 (use-package vertico
   :ensure t
@@ -144,4 +184,4 @@
                 (lambda ()
                   (interactive)
                   (execute-kbd-macro (kbd "C-SPC C-a DEL"))))
-
+(put 'upcase-region 'disabled nil)
