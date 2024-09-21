@@ -185,3 +185,25 @@
                   (interactive)
                   (execute-kbd-macro (kbd "C-SPC C-a DEL"))))
 (put 'upcase-region 'disabled nil)
+
+
+(defun rust-analyzer-add-missing-imports ()
+  "Runs the 'rust-analyzer.add-missing-imports' code action."
+  (interactive)
+  (let ((action (seq-find
+                 (lambda (action)
+                   (string-equal (gethash "command" action) "rust-analyzer.add-missing-imports"))
+                 (lsp-code-actions-at-point))))
+    ))
+
+(define-key rust-mode-map (kbd "C-c C-i") 'rust-analyzer-add-missing-imports)
+(unless (package-installed-p 'flycheck)
+  (package-refresh-contents)
+  (package-install 'flycheck))
+
+(add-hook 'after-init-hook #'global-flycheck-mode)
+(put 'downcase-region 'disabled nil)
+
+(add-hook 'rust-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c C-c") 'compile)))

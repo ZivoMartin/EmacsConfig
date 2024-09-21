@@ -1,0 +1,31 @@
+from position import Position
+from grille import Grille
+
+class Snake:
+
+    def _init_(self, pos, grid_code):
+        self.body = [Position(pos.x-2, pos.y), Position(pos.x-1, pos.y) , pos]
+        self.grid_code = grid_code
+        self.dir = [1, 0]
+        self.pv = 3
+
+
+    def set_direction(self, direction):
+        self.dir = direction
+
+
+    def update(self, grille):
+        new_head = self.body(len(self.body) - 1).add(self.dir[0], self.dir[1])
+        elt = grille.get(new_head)
+        if elt == "p":
+            grille.set(new_head, self.grid_code)
+            self.body.append(new_head)
+        elif elt != "g":
+            self.pv -= 1
+
+        else:
+            grille.set(new_head, self.grid_code)
+            grille.set(body[0], "g")
+            for i in range(len(self.body) - 1):
+                self.body[i] = self.body[i + 1]
+            self.body[len(self.body) - 1] = new_head
