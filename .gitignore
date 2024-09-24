@@ -1,8 +1,7 @@
-.emacs.desktop
- backups/
- custom.el
- elpa
- emacs-c-ide-demo
- init.el~
- transient
- 
+backups/
+elpa
+emacs-c-ide-demo
+transient
+.lsp-session-v1
+auto-save-list
+elpa        
