@@ -21,32 +21,32 @@
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/") t)
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+;; (unless (package-installed-p 'use-package)
+;;   (package-refresh-contents)
+;;   (package-install 'use-package))
 
-(require 'use-package)
+;; (require 'use-package)
 
-(use-package rust-mode
-  :ensure t
-  :mode "\\.rs\\'"
-  :hook (rust-mode . lsp))
+;; (use-package rust-mode
+;;   :ensure t
+;;   :mode "\\.rs\\'"
+;;   :hook (rust-mode . lsp))
 
-(use-package lsp-mode
-  :ensure t
-  :commands lsp
-  :hook ((lsp-mode . lsp-ui-mode)
-         (lsp-mode . company-mode))
-  :custom
-  (lsp-rust-analyzer-server-command '("rust-analyzer"))
-  (lsp-ui-sideline-enable nil)
-  (lsp-ui-doc-enable nil)
-  (company-idle-delay 0.2)
-  (company-minimum-prefix-length 1)
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-rust-analyzer-diagnostics-enable-experimental t)
-  (lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
-  (lsp-rust-analyzer-proc-macro-enable t))
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :commands lsp
+;;   :hook ((lsp-mode . lsp-ui-mode)
+;;          (lsp-mode . company-mode))
+;;   :custom
+;;   (lsp-rust-analyzer-server-command '("rust-analyzer"))
+;;   (lsp-ui-sideline-enable nil)
+;;   (lsp-ui-doc-enable nil)
+;;   (company-idle-delay 0.2)
+;;   (company-minimum-prefix-length 1)
+;;   (lsp-rust-analyzer-cargo-watch-command "clippy")
+;;   (lsp-rust-analyzer-diagnostics-enable-experimental t)
+;;   (lsp-rust-analyzer-cargo-load-out-dirs-from-check t)
+;;   (lsp-rust-analyzer-proc-macro-enable t))
 
 
 (unless (version< emacs-version "24")
