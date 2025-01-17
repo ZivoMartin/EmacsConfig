@@ -15,6 +15,7 @@
 (require 'init-company-mode)
 (require 'init-ui)
 (require 'init-ocaml)
+(require 'init-zig)
 
 (provide 'init)
 (require 'package)
@@ -49,10 +50,6 @@
 ;;   (lsp-rust-analyzer-proc-macro-enable t))
 
 
-(unless (version< emacs-version "24")
-  (add-to-list 'load-path "/home/martin/.emacs.d/zig-mode/")
-  (autoload 'zig-mode "zig-mode" nil t)
-  (add-to-list 'auto-mode-alist '("\\.zig\\'" . zig-mode)))
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
@@ -178,6 +175,8 @@
 (require 'multiple-cursors)
 
 (global-set-key (kbd "M-n") 'mc/edit-lines)
+(global-set-key (kbd "C-%") 'replace-string)
+(global-set-key (kbd "C-ù") 'query-replace)
 
 
 (global-set-key (kbd "C-x DEL")
