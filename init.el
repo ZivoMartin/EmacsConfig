@@ -14,13 +14,13 @@
 (require 'init-miscellaneous)
 (require 'init-company-mode)
 (require 'init-ui)
-(require 'init-ocaml)
+;; (require 'init-ocaml)
 (require 'init-zig)
+(require 'init-vue)
+(require 'init-nasm)
 
 (provide 'init)
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
 
 ;; (unless (package-installed-p 'use-package)
 ;;   (package-refresh-contents)
@@ -206,3 +206,18 @@
 (add-hook 'rust-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-c") 'compile)))
+(defun open-vterm-split ()
+  (interactive)
+  (split-window-right)   
+  (other-window 1)       
+  (vterm))               
+
+(global-set-key (kbd "C-c t") 'open-vterm-split)
+
+(defun open-new-vterm ()
+  "Crée un nouveau vterm avec un nom unique."
+  (interactive)
+  (let ((buffer (generate-new-buffer-name "vterm"))) ;; Génère un nom unique (ex: vterm<2>)
+    (vterm buffer))) ;; Ouvre un nouveau buffer avec ce nom
+
+(global-set-key (kbd "C-c n") 'open-new-vterm) ;; Associe à `C-c n`
