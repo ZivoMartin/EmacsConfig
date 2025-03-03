@@ -1,6 +1,0 @@
-#include "GameEntity"
-
-
-GameEntity::GameEntity {
-	
-}

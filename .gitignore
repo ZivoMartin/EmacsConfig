@@ -5,3 +5,7 @@ transient
 .lsp-session-v1
 auto-save-list
 elpa        
+lisp/rust-mode
+.mc-lists.el
+custom.el
+eln-cache
