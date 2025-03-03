@@ -9,3 +9,5 @@ lisp/rust-mode
 .mc-lists.el
 custom.el
 eln-cache
+transient
+.emacs-desktop
