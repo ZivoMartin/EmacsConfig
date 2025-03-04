@@ -11,3 +11,5 @@ custom.el
 eln-cache
 transient
 .emacs-desktop
+.emacs.desktop
+tree-sitter    
