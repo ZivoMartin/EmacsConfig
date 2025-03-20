@@ -14,6 +14,8 @@
 (require 'init-nasm)
 (require 'init-rust)
 (require 'init-lisp)
+(require 'init-haskell)
+
 (provide 'init)
 
 
@@ -30,11 +32,11 @@
 
 (setq-default fill-column 80)
 (add-hook 'prog-mode-hook
-	  (defun brw/prog-mode-hook ()
-	    (display-line-numbers-mode)
-	    (display-fill-column-indicator-mode)))
+	      (defun brw/prog-mode-hook ()
+	        (display-line-numbers-mode)
+	        (display-fill-column-indicator-mode)))
 
- 
+
 ;;; fonts
 (defun brw/big-font ()
   "Set a larger font for streaming"
