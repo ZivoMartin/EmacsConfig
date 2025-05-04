@@ -98,3 +98,43 @@
     (vterm buffer))) ;; Ouvre un nouveau buffer avec ce nom
 
 (global-set-key (kbd "C-c n") 'open-new-vterm) ;; Associe à `C-c n`
+
+(defhydra hydra-resize-window (:hint nil)
+  "
+Resize window:
+  _<left>_: shrink-horizontally   _<right>_: enlarge-horizontally
+  _<up>_: enlarge-vertically      _<down>_: shrink-vertically
+  _q_: quit
+"
+  ("<left>"  (shrink-window-horizontally 2))
+  ("<right>" (enlarge-window-horizontally 2))
+  ("<up>"    (enlarge-window 2))
+  ("<down>"  (shrink-window 2))
+  ("q" nil))
+
+(global-set-key (kbd "C-<") 'hydra-resize-window/body)
+
+(use-package wrap-region
+  :ensure t
+  :config
+  (wrap-region-global-mode t))
+
+(defun reload-init-file ()
+  (interactive)
+  (load-file user-init-file))
+
+(require 'cc-mode)
+(require 'semantic)
+(semantic-mode 1)
+
+(defun jump-to-c-symbol-direct ()
+  "Jump directly to the definition of the symbol at point using Semantic."
+  (interactive)
+  (let ((tag (thing-at-point 'symbol t)))
+    (if tag
+        (semantic-ia-fast-jump (point))
+      (message "No symbol at point."))))
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (local-set-key (kbd "C-<return>") #'jump-to-c-symbol-direct)))
