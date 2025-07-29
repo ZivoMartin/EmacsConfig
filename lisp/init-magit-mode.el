@@ -20,12 +20,5 @@
   ;; Prefer opening status in full frame, then restoring window config after quit
   (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1))
 
-;; Optional: highlights changes in the margin (like `git diff`)
-(use-package diff-hl
-  :ensure t
-  :hook ((prog-mode . diff-hl-mode)
-         (magit-post-refresh . diff-hl-magit-post-refresh)))
-
-
 (provide 'init-magit-mode)
 ;;; init-magit-mode.el ends here
