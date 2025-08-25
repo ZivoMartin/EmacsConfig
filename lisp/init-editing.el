@@ -11,7 +11,8 @@
 
 ;; Installed by default, will bring you back where you were when come backing in a file
 (require 'saveplace)
-(setq-default save-place t)
+
+(save-place-mode 1)
 
 ;; keep track of saved places in ~/.emacs.d/places
 (setq save-place-file (concat user-emacs-directory "places"))
@@ -38,17 +39,16 @@
   (setq savehist-additional-variables '(kill-ring))
   (savehist-mode 1))
 
-;;; Better parentheses and pairs navigation 
-(use-package smartparens
-  :init
-  (require 'smartparens-config) ; Loads default pair definitions
-  :hook (prog-mode . smartparens-mode)
-  :bind
-  (("C-M-l" . sp-forward-sexp)   ;; jump to closing
-   ("C-M-h" . sp-backward-sexp)  ;; jump to opening
-   ("M-a"   . sp-beginning-of-sexp)
-   ("M-e"   . sp-end-of-sexp)))
+;; Basic sexp navigation using built-in functions
+(global-set-key (kbd "C-M-l") #'forward-sexp)    ;; jump to closing
+(global-set-key (kbd "C-M-h") #'backward-sexp)   ;; jump to opening
+(global-set-key (kbd "M-a")   #'backward-up-list)
+(global-set-key (kbd "M-e")   #'down-list)
 
+;; Enable these only in programming modes
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (show-paren-mode 1)))
 
 (defun open-thing-at-point ()
   "Open the file or URL at point.
@@ -67,6 +67,10 @@
       (message "No valid file or URL at point.")))))
 
 (global-set-key (kbd "M-<return>") #'open-thing-at-point)
+
+(setq lsp-idle-delay 3 lsp-completion-max-results 30)
+
+(global-auto-revert-mode 1)
 
 (provide 'init-editing)
 ;;; init-editing.el ends here

@@ -1,58 +1,89 @@
-;;; init-miking.el --- Major mode for Miking language (*.mc) -*- lexical-binding: t; -*-
+;;; init-miking.el --- Minimal Miking mode for .mc files -*- lexical-binding: t; -*-
 
-;;; Commentary:
-;; This defines a simple major mode for editing Miking language files (*.mc).
-;; It includes syntax highlighting for keywords, types, constants, comments,
-;; strings, characters, and common language constructs.
+;; Basic, fast syntax highlighting for the Miking language:
+;; - Keywords
+;; - Types (identifiers starting with a capital letter)
+;; - Names right after `let` (optionally `recursive`) and `lam`
+;; - Strings
+;; - Comments:
+;;     -- single-line
+;;     /- ... -/ multi-line
 
-;;; Code:
+(defgroup miking nil
+  "Major mode for the Miking programming language."
+  :group 'languages)
 
+(defvar miking-mode-hook nil
+  "Hook run when entering `miking-mode'.")
+
+;; ---------- Syntax table ----------
+(defvar miking-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; Strings: " ... "
+    (modify-syntax-entry ?\" "\"" st)
+
+    ;; Treat underscore as a word constituent.
+    (modify-syntax-entry ?_ "w" st)
+
+    ;; Default: everything else punctuation unless overridden by font-lock.
+    st)
+  "Syntax table for `miking-mode'.")
+
+;; ---------- Font-lock (highlighting) ----------
+(defconst miking--keywords
+  '("let" "in" "if" "then" "else" "type" "match" "with" "recursive" "include"
+    "sem" "syn" "lang" "end" "utest" "mexpr" "use" "con" "switch" "case" "lam"))
+
+(defconst miking--keywords-regexp
+  (regexp-opt miking--keywords 'symbols))
+
+;; Identifier = word or symbol constituent
+(defconst miking--ident "\\(?:\\sw\\|\\s_\\)+")
+
+(defconst miking-font-lock-keywords
+  `(
+    ;; COMMENTS (put first so they override other faces)
+    ;; Multi-line: /- ... -/
+    ("/-\\(?:.\\|\n\\)*?-/" . (0 font-lock-comment-face t))
+    ;; Single-line: -- ...
+    ("--.*$" . (0 font-lock-comment-face t))
+
+    ;; KEYWORDS
+    (,miking--keywords-regexp . font-lock-keyword-face)
+
+    ;; TYPE NAMES: Capitalized identifiers (e.g., `List`, `TreeNode`)
+    ("\\_<[A-Z][[:word:]]*\\_>" . font-lock-type-face)
+
+    ;; NAMES right after `let` (optionally `recursive`)
+    (,(concat "\\_<let\\_>\\s-+\\(?:recursive\\s-+\\)?\\(" miking--ident "\\)")
+     (1 font-lock-variable-name-face))
+
+    ;; NAME right after `lam`
+    (,(concat "\\_<lam\\_>\\s-+\\(" miking--ident "\\)")
+     (1 font-lock-variable-name-face))
+    ))
+
+;; ---------- Major mode definition ----------
+;;;###autoload
 (define-derived-mode miking-mode prog-mode "Miking"
-  "Major mode for editing Miking files (.mc)."
+  "A minimal major mode for the Miking programming language."
+  :syntax-table miking-mode-syntax-table
+  (setq-local case-fold-search nil)        ; be strict about case
+  (setq-local font-lock-multiline t)       ; allow multi-line comment regex
+  (setq-local comment-start "--")
+  (setq-local comment-start-skip "--+\\s-*")
 
-  ;; Table de syntaxe pour les commentaires multilignes
-  (modify-syntax-entry ?/ ". 124b" miking-mode-syntax-table)
-  (modify-syntax-entry ?- ". 23"   miking-mode-syntax-table)
-  (modify-syntax-entry ?\n ">"     miking-mode-syntax-table)
+  ;; Use our font-lock keywords; keep syntactic fontification for strings.
+  (setq-local font-lock-defaults
+              '(miking-font-lock-keywords
+                nil                          ; KEYWORDS-ONLY? (nil = also do strings/comments syntactically)
+                nil                          ; CASE-FOLD? (nil = use buffer-local case-fold-search)
+                ((?_ . "w"))))               ; treat underscore as word constituent
+  ;; Comment helpers (so M-; uses `--`; block comments still highlighted via font-lock)
+  (setq-local comment-end "")
+  (setq-local comment-use-syntax nil))
 
-  ;; Détection des commentaires multilignes
-  (setq-local syntax-propertize-function
-              (syntax-propertize-rules
-               ("\\(/-\\)" (1 "<"))
-               ("\\(-/\\)" (1 ">"))))
-
-  ;; Font-lock pour la coloration syntaxique
-  (let* (
-         ;; Définitions
-         (keywords '("let" "in" "if" "then" "else" "type" "match" "with" "recursive"
-                     "include" "sem" "syn" "lang" "end" "utest" "mexpr" "use" "con" "switch" "case" "lam"))
-         (constants '("true" "false"))
-         (types '("Int" "Bool" "String" "Float" "Char" "Unit" "List" "Option"))
-         (keyword-regexp (regexp-opt keywords 'words))
-         (constant-regexp (regexp-opt constants 'words))
-         (type-regexp (regexp-opt types 'words)))
-    (setq font-lock-defaults
-          `((
-             ;; Commentaires (ligne + multilignes)
-             ("--.*$" . font-lock-comment-face)
-             ("\\(/-\\(?:.\\|\n\\)*?-/\\)" . font-lock-comment-face)
-
-             ;; Chaines de caractères
-             ("\"\\([^\"\\]\\|\\\\.\\)*\"" . font-lock-string-face)
-
-             ;; Caractères
-             ("'\\(\\\\.\\|[^']\\)'" . font-lock-string-face)
-
-             ;; Mots-clés, constantes, types
-             (,keyword-regexp . font-lock-keyword-face)
-             (,constant-regexp . font-lock-constant-face)
-             (,type-regexp . font-lock-type-face)
-
-             ;; Identifiants nommés
-             ("\\<\\(type\\|syn\\|lang\\|use\\)\\s-+\\(\\w+\\)" 2 font-lock-type-face)
-             ("\\<\\(let\\|lam\\|sem\\|con\\)\\s-+\\(\\w+\\)" 2 font-lock-variable-name-face)
-             )))))
-
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.mc\\'" . miking-mode))
 
 (provide 'init-miking)

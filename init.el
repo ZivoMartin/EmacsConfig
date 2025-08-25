@@ -8,7 +8,7 @@
 (eval-when-compile
   (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory)))
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+ (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror 'nomessage)
 
 (require 'init-elpa)
@@ -19,11 +19,16 @@
 (require 'init-nasm)
 (require 'init-rust)
 (require 'init-ocaml)
+(require 'init-java)
+(require 'init-javascript)
+(require 'init-react)
 (require 'init-c)
 (require 'init-zig)
 (require 'init-haskell)
+(require 'init-miking)
+(require 'init-markdown)
+(require 'init-latex)
 
-(require 'init-bindings)
 (require 'init-ui)
 (require 'init-miscellaneous)
 (require 'init-electric)
@@ -31,6 +36,12 @@
 (require 'init-company-mode)
 (require 'init-vterm)
 (require 'init-multi-cursor)
+(require 'init-org-mode)
+(require 'init-projectile)
+(require 'init-make)
+(require 'init-isearch)
+(require 'init-drag-stuff)
+(require 'init-bindings)
 
 (provide 'init)
 ;;; init.el ends here

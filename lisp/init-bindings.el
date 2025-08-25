@@ -1,70 +1,207 @@
-;;; init-bindings.el --- Custom key bindings configuration -*- lexical-binding: t; -*-
+;;; init-bindings.el --- Custom key bindings as an activatable minor mode -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Defines global keybindings for movement, editing, navigation, and search.
-;; These override some default Emacs bindings to fit personal preferences.
+;; This rewrites the original global keybindings into a toggleable minor mode.
+;; Enable per buffer with:
+;;   (martin-mode 1)
+;; Or globally with:
+;;   (martin-global-mode 1)
 
 ;;; Code:
 
-;; Movements
-(subword-mode 1)
-(global-set-key (kbd "C-h") 'backward-char)
-(global-set-key (kbd "C-l") 'forward-char)
-(global-set-key (kbd "C-k") 'next-line)
-(global-set-key (kbd "C-j") 'previous-line)
+(eval-when-compile (require 'cl-lib))
+(require 'subword)
+(require 'org)
 
-(global-set-key (kbd "M-h") 'subword-backward)
-(global-set-key (kbd "M-l") 'subword-forward)
-(global-set-key (kbd "M-j") 'backward-paragraph)
-(global-set-key (kbd "M-k") 'forward-paragraph)
+;;;; Helpers & state ---------------------------------------------------------
 
-;; Delete 
-(global-set-key (kbd "C-p") 'delete-backward-char)
-(global-set-key (kbd "M-p") 'backward-kill-word)
-(global-set-key (kbd "C-S-p") 'backward-kill-word)        
-(global-set-key (kbd "C-ù") 'kill-line)
-(global-set-key (kbd "M-ù") 'kill-whole-line)
+(defvar-local martin--subword-was-active nil
+  "Whether `subword-mode' was active before enabling `martin-mode'.")
 
-;; Returns
-(global-set-key (kbd "<return>") 'other-window) ;;
+;;;; Swapping & misc commands ------------------------------------------------
 
-;; Arrows
-(global-set-key (kbd "<up>")    'scroll-down-line)
-(global-set-key (kbd "<down>")  'scroll-up-line)
-(global-set-key (kbd "<left>")  'previous-buffer)
-(global-set-key (kbd "<right>") 'next-buffer)
+(defun swap-line-up ()
+  "Swap current line with the one above."
+  (interactive)
+  (let ((col (current-column)))
+    (transpose-lines 1)
+    (forward-line -2)
+    (move-to-column col)))
 
-;; Searching
-(global-set-key (kbd "C-M-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-M-r") 'isearch-backward-regexp)
-(global-set-key (kbd "C-s") 'isearch-forward)
-(global-set-key (kbd "C-r") 'isearch-backward)
+(defun swap-line-down ()
+  "Swap current line with the one below."
+  (interactive)
+  (let ((col (current-column)))
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)
+    (move-to-column col)))
 
-;; Others
-(global-set-key (kbd "C-,") 'recenter-top-bottom)
-(global-set-key (kbd "C-c h") 'help-command)
-(global-set-key (kbd "C-%") 'query-replace)
-(global-set-key (kbd "C-x DEL")
-                (lambda ()
-                  (interactive)
-                  (execute-kbd-macro (kbd "C-SPC C-a DEL"))))
+(defun swap-word-left ()
+  "Swap current word with the one on the left."
+  (interactive)
+  (transpose-words -1))
 
+(defun swap-word-right ()
+  "Swap current word with the one on the right."
+  (interactive)
+  (transpose-words 1))
 
-;; Line commenting
+(defun my-scroll-up ()
+  "Scroll up 3 lines."
+  (interactive)
+  (scroll-up-line 3))
+
+(defun my-scroll-down ()
+  "Scroll down 3 lines."
+  (interactive)
+  (scroll-down-line 3))
+
+(defun my/insert-space-no-move ()
+  "Insert a space at point without moving point after insertion."
+  (interactive)
+  (save-excursion (insert " ")))
+
 (defun toggle-comment-on-line ()
   "Comment or uncomment current line."
   (interactive)
-  (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
-(global-set-key (kbd "C-;") 'toggle-comment-on-line)
+  (comment-or-uncomment-region (line-beginning-position)
+                               (line-end-position)))
 
-;; eglot
 (defun my/eglot-keybindings ()
   "Custom keybindings for Eglot-enabled buffers."
   (local-set-key (kbd "C-<return>") #'xref-find-definitions)
-  (local-set-key (kbd "C-c C-b")    #'xref-pop-marker-stack))
+  (local-set-key (kbd "C-c C-b")    #'xref-go-back))
 
 (add-hook 'eglot-managed-mode-hook #'my/eglot-keybindings)
 
+;;;; Keymap -----------------------------------------------------------------
+
+(defvar martin-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Movements
+    (define-key map (kbd "C-h") #'backward-char)
+    (define-key map (kbd "C-l") #'forward-char)
+    (define-key map (kbd "C-k") #'next-line)
+    (define-key map (kbd "C-j") #'previous-line)
+
+    (define-key map (kbd "M-h") #'subword-backward)
+    (define-key map (kbd "M-l") #'subword-forward)
+    (define-key map (kbd "M-j") #'backward-paragraph)
+    (define-key map (kbd "M-k") #'forward-paragraph)
+
+    ;; Goto
+    (define-key map (kbd "M-g M-g") #'goto-line)
+    (define-key map (kbd "M-g M-f") #'move-to-column)
+
+    ;; Delete overrides -> ignore
+    (dolist (key '("DEL" "C-DEL" "M-DEL"
+                   "<deletechar>" "<backspace>"
+                   "C-<deletechar>" "M-<deletechar>"
+                   "C-<backspace>"  "M-<backspace>"))
+      (define-key map (kbd key) #'ignore))
+
+    (define-key map (kbd "C-p")   #'delete-backward-char)
+    (define-key map (kbd "M-p")   #'subword-backward-kill)
+    (define-key map (kbd "C-S-p") #'backward-kill-word)
+
+    (define-key map (kbd "C-ù") #'kill-line)
+    (define-key map (kbd "M-ù") #'kill-whole-line)
+
+    ;; Caps mapping (might be system/TTY dependent)
+    (define-key map (kbd "<capslock>") #'event-apply-control-modifier)
+
+    ;; Window/frame
+    (define-key map (kbd "<return>") #'other-frame)
+    (define-key map (kbd "s-o")      #'other-window)
+
+    ;; Arrows -> swap things
+    (define-key map (kbd "<up>")    #'swap-line-up)
+    (define-key map (kbd "<down>")  #'swap-line-down)
+    (define-key map (kbd "<left>")  #'swap-word-left)
+    (define-key map (kbd "<right>") #'swap-word-right)
+
+    ;; Scrolling & buffer nav (super-based)
+    (define-key map (kbd "s-k") #'my-scroll-up)
+    (define-key map (kbd "s-j") #'my-scroll-down)
+    (define-key map (kbd "s-h") #'previous-buffer)
+    (define-key map (kbd "s-l") #'next-buffer)
+
+    ;; Misc
+    (define-key map (kbd "C-S-SPC") #'my/insert-space-no-move)
+    (define-key map (kbd "C-,")     #'recenter-top-bottom)
+    (define-key map (kbd "C-c h")   #'help-command)
+    (define-key map (kbd "C-%")     #'query-replace)
+
+    ;; Vterm
+    (declare-function my/vterm-split-right "init-vterm")
+    (declare-function my/vterm-new-buffer "init-vterm")
+    (declare-function my/open-emacs-on-laptop "init-vterm")
+
+    (define-key map (kbd "C-c t") #'my/vterm-split-right)
+    (define-key map (kbd "C-c n") #'my/vterm-new-buffer)
+    (define-key map (kbd "C-c C-t") #'my/open-emacs-on-laptop)
+
+    ;; Projectile
+    (define-key map (kbd "C-f") #'projectile-find-file)
+    (define-key map (kbd "C-b") #'projectile-switch-to-buffer)
+    
+    (define-key map (kbd "C-c p p") #'projectile-switch-project)
+    (define-key map (kbd "C-c p g") #'projectile-grep)
+    (define-key map (kbd "C-c p r") #'projectile-replace)
+    (define-key map (kbd "C-c p s") #'projectile-ripgrep)
+    (define-key map (kbd "C-c p b") #'projectile-switch-to-buffer)
+    (define-key map (kbd "C-c p k") #'projectile-kill-buffers)
+
+    ;; Org
+    (define-key map (kbd "C-!") #'org-todo)
+    
+    ;; region from bol to previous line
+    (define-key map (kbd "C-x p")
+      (lambda ()
+        (interactive)
+        (execute-kbd-macro (kbd "C-SPC C-a C-p"))))
+
+    (define-key map (kbd "C-x C-p")
+      (lambda ()
+        (interactive)
+        (execute-kbd-macro (kbd "C-SPC C-a C-p"))))
+
+    ;; Line commenting
+    (define-key map (kbd "C-;") #'toggle-comment-on-line)
+
+    map)
+  "Keymap for `martin-mode'.")
+
+;;;; Minor modes -------------------------------------------------------------
+
+;;;###autoload
+(define-minor-mode martin-mode
+  "Toggle personal keybindings in the current buffer.
+When enabled, installs a set of custom keybindings.
+It also turns on `subword-mode' for the buffer and remembers/restores its prior
+state when disabling."
+  :init-value nil
+  :lighter " ⌨"
+  :keymap martin-mode-map
+  (if martin-mode
+      ;; Enabling
+      (progn
+        (when (fboundp 'subword-mode)
+          (setq martin--subword-was-active (bound-and-true-p subword-mode))
+          (subword-mode 1)))
+    ;; Disabling
+    (when (and (fboundp 'subword-mode)
+               (not martin--subword-was-active))
+      (subword-mode 0))))
+
+;;;###autoload
+(define-globalized-minor-mode martin-global-mode
+  martin-mode
+  (lambda () (martin-mode 1))
+  :group 'convenience)
+
+(martin-global-mode 1)
 
 (provide 'init-bindings)
 ;;; init-bindings.el ends here

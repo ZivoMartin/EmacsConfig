@@ -36,6 +36,8 @@
 ;;; Disable bell sound
 (setq ring-bell-function 'ignore)
 
+(setq use-dialog-box nil)
+
 ;;; Theme configuration
 (use-package atom-one-dark-theme
   :config
