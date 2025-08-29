@@ -28,6 +28,7 @@
 (require 'init-miking)
 (require 'init-markdown)
 (require 'init-latex)
+(require 'init-pdf)
 
 (require 'init-ui)
 (require 'init-miscellaneous)

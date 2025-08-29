@@ -26,15 +26,14 @@
   ;; Optional: avoid accidental cursor creep
   (setq mc/list-file (expand-file-name "mc-lists.el" user-emacs-directory))
   :bind
-  (("C-c m l" . mc/edit-lines)
-   ("C-c m n" . mc/mark-next-like-this)
-   ("C-c m p" . mc/mark-previous-like-this)
-   ("C-c m a" . mc/mark-all-like-this)
-   ("C-c m m" . mc/mark-all-like-this-dwim)
-   ("C-c m e" . mc/edit-ends-of-lines)
-   ("C-c m b" . mc/edit-beginnings-of-lines)
-   ("C-c m r" . set-rectangular-region-anchor)
-   ("C-c m d" . mc/mark-more-like-this-extended)))
+  (("C-<left>" . mc/edit-lines)
+   ("C-<right>>" . mc/edit-ends-of-lines)
+   ("M-<left>" . mc/edit-beginnings-of-lines)
+   ("C-<down>" . mc/mark-next-like-this)
+   ("C-<up>" . mc/mark-previous-like-this)
+   ("M-<right>" . mc/mark-all-like-this)
+   ("M-<down>" . set-rectangular-region-anchor)
+   ("M-<up>" . mc/mark-more-like-this-extended)))
 
 
 ;; Optional: enable region-based bindings for multiple cursors

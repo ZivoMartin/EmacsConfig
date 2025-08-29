@@ -16,6 +16,8 @@
     (define-key map (kbd "<return>")  #'isearch-exit)
     (define-key map (kbd "C-g")       #'isearch-exit)
 
+    (define-key map (kbd "C-s-g")   #'ignore)
+
     (defun my-isearch-exit-and-next-line ()
       "Quit isearch and move cursor down."
       (interactive)

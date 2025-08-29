@@ -91,15 +91,14 @@ ATTRS are the attributes of the laptop screen."
       (define-key map (kbd "C-p")   #'vterm-send-backspace) ; delete char backward
       (define-key map (kbd "M-p")   (lambda () (interactive) (vterm-send-key "<backspace>" nil t))) ; M-BS (shell-level)
       (define-key map (kbd "C-S-p") #'vterm-send-C-w) ; delete word backward (shell)
-
-      ;; Kill lines in shell
-      (define-key map (kbd "C-ù")   (lambda () (interactive) (vterm-send-key "C-k" t))) ; C-k
-      (define-key map (kbd "M-ù")   (lambda () (interactive) (vterm-send-key "C-u" t))) ; C-u
-
-      (define-key map (kbd "C-%") #'kill-line)
+      (define-key map (kbd "C-ù") #'vterm-send-C-k)
 
       ;; Enter: switch frame; Shift+Enter sends RET to shell
-      (define-key map (kbd "<return>")   #'other-frame)
+      (define-key map (kbd "<return>")
+                (if (> (length (display-monitor-attributes-list)) 1)
+                    #'other-frame
+                  #'other-window))
+      
       (define-key map (kbd "S-<return>") #'vterm-send-return)
       map)
     "Keymap that should override minor modes inside `vterm-mode` buffers.")

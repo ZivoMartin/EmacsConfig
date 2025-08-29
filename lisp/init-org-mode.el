@@ -12,7 +12,15 @@
   :ensure t
   :config
 
-  
+  (setq org-agenda-files '("~/kth/protocols/protocols.org"
+                           "~/kth/security/security.org"
+                           "~/kth/integrating/integrating.org"
+                           "~/Travail/miking-docgen/todo.org"
+                           "~/.emacs.d/emacs.org"
+                           "~/org/kth.org"
+                           "~/org/notes.org"
+                          ))
+
   ;; Basic Org setup
   (setq org-directory "~/org/")
   (setq org-default-notes-file (concat org-directory "notes.org"))

@@ -90,6 +90,13 @@
     (define-key map (kbd "M-j") #'backward-paragraph)
     (define-key map (kbd "M-k") #'forward-paragraph)
 
+    ;; Zoom
+    (define-key map (kbd "C-+") #'text-scale-increase)
+
+    ;; Saving
+    (define-key map (kbd "C-z") #'save-buffer)
+    (define-key map (kbd "C-x s") #'ignore)
+
     ;; Goto
     (define-key map (kbd "M-g M-g") #'goto-line)
     (define-key map (kbd "M-g M-f") #'move-to-column)
@@ -112,8 +119,22 @@
     (define-key map (kbd "<capslock>") #'event-apply-control-modifier)
 
     ;; Window/frame
-    (define-key map (kbd "<return>") #'other-frame)
-    (define-key map (kbd "s-o")      #'other-window)
+    (define-key map (kbd "<return>")
+                (if (> (length (display-monitor-attributes-list)) 1)
+                    #'other-frame
+                  #'other-window))
+    (define-key map (kbd "s-o") #'other-window)
+    (define-key map (kbd "C-&") #'delete-window)
+    (define-key map (kbd "C-é") #'split-window-right)
+    (define-key map (kbd "C-\"") #'split-window-below)
+    (define-key map (kbd "C-²") #'delete-other-windows)
+
+    ;; Removing old windows bindings
+
+    (define-key map (kbd "C-x 0") #'ignore)
+    (define-key map (kbd "C-x 1") #'ignore)
+    (define-key map (kbd "C-x 2") #'ignore)
+    (define-key map (kbd "C-x 3") #'ignore)
 
     ;; Arrows -> swap things
     (define-key map (kbd "<up>")    #'swap-line-up)
@@ -143,9 +164,9 @@
     (define-key map (kbd "C-c C-t") #'my/open-emacs-on-laptop)
 
     ;; Projectile
-    (define-key map (kbd "C-f") #'projectile-find-file)
-    (define-key map (kbd "C-b") #'projectile-switch-to-buffer)
-    
+    (define-key map (kbd "C-f") #'find-file)
+    (define-key map (kbd "C-b") #'switch-to-buffer)
+
     (define-key map (kbd "C-c p p") #'projectile-switch-project)
     (define-key map (kbd "C-c p g") #'projectile-grep)
     (define-key map (kbd "C-c p r") #'projectile-replace)
@@ -155,7 +176,9 @@
 
     ;; Org
     (define-key map (kbd "C-!") #'org-todo)
-    
+    (define-key map (kbd "M-a") #'org-agenda-list)
+    (define-key map (kbd "M-t") #'org-todo-list)
+
     ;; region from bol to previous line
     (define-key map (kbd "C-x p")
       (lambda ()
