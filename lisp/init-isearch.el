@@ -1,5 +1,43 @@
 ;;; init-isearch.el --- Minimal tailored isearch behavior  -*- lexical-binding: t; -*-
 
+;;; Commentary:
+
+;;; Code:
+
+;; Exit only if we really have a confirmed match; otherwise abort back to start
+(defun my/isearch-exit-or-abort ()
+  "In isearch: exit when a real match is selected; otherwise abort."
+  (interactive)
+  (if (and isearch-success
+           (> (length isearch-string) 0))
+      (isearch-exit)
+    (isearch-abort)))
+
+(defun my-isearch-exit-and-next-line ()
+  "Quit isearch and move cursor down."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (next-line))
+
+(defun my-isearch-exit-and-previous-line ()
+  "Quit isearch and move cursor up."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (previous-line))
+
+(defun my-isearch-exit-and-forward-char ()
+  "Quit isearch and move cursor right."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (forward-char))
+
+(defun my-isearch-exit-and-backward-char ()
+  "Quit isearch and move cursor left."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (backward-char))
+
+
 ;; Global bindings
 
 (with-eval-after-load 'isearch
@@ -7,40 +45,12 @@
     (define-key map (kbd "M-s") nil)
 
     (global-set-key (kbd "C-s")   #'isearch-forward)
-    (global-set-key (kbd "s-s") #'isearch-backward)
+    (global-set-key (kbd "s-s")   #'isearch-backward)
 
-    (define-key map (kbd "C-s") #'isearch-repeat-forward)
-    (define-key map (kbd "s-s") #'isearch-repeat-backward)
+    (define-key map (kbd "RET")       #'my/isearch-exit-or-abort)
+    (define-key map (kbd "<return>")  #'my/isearch-exit-or-abort)
 
-    (define-key map (kbd "RET")       #'isearch-exit)
-    (define-key map (kbd "<return>")  #'isearch-exit)
-    (define-key map (kbd "C-g")       #'isearch-exit)
-
-    (define-key map (kbd "C-s-g")   #'ignore)
-
-    (defun my-isearch-exit-and-next-line ()
-      "Quit isearch and move cursor down."
-      (interactive)
-      (isearch-exit)
-      (next-line))
-
-    (defun my-isearch-exit-and-previous-line ()
-      "Quit isearch and move cursor up."
-      (interactive)
-      (isearch-exit)
-      (previous-line))
-
-    (defun my-isearch-exit-and-forward-char ()
-      "Quit isearch and move cursor right."
-      (interactive)
-      (isearch-exit)
-      (forward-char))
-
-    (defun my-isearch-exit-and-backward-char ()
-      "Quit isearch and move cursor left."
-      (interactive)
-      (isearch-exit)
-      (backward-char))
+    (define-key map (kbd "C-g")       #'my/isearch-exit-or-abort)
 
     (define-key isearch-mode-map (kbd "C-k") #'my-isearch-exit-and-next-line)
     (define-key isearch-mode-map (kbd "C-j") #'my-isearch-exit-and-previous-line)

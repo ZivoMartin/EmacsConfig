@@ -93,6 +93,8 @@ ATTRS are the attributes of the laptop screen."
       (define-key map (kbd "C-S-p") #'vterm-send-C-w) ; delete word backward (shell)
       (define-key map (kbd "C-ù") #'vterm-send-C-k)
 
+      (define-key map (kbd "<backspace>") #'vterm-send-C-l)
+
       ;; Enter: switch frame; Shift+Enter sends RET to shell
       (define-key map (kbd "<return>")
                 (if (> (length (display-monitor-attributes-list)) 1)

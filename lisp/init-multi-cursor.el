@@ -27,7 +27,7 @@
   (setq mc/list-file (expand-file-name "mc-lists.el" user-emacs-directory))
   :bind
   (("C-<left>" . mc/edit-lines)
-   ("C-<right>>" . mc/edit-ends-of-lines)
+   ("C-<right>" . mc/edit-ends-of-lines)
    ("M-<left>" . mc/edit-beginnings-of-lines)
    ("C-<down>" . mc/mark-next-like-this)
    ("C-<up>" . mc/mark-previous-like-this)

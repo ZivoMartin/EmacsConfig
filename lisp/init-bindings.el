@@ -96,6 +96,7 @@
     ;; Saving
     (define-key map (kbd "C-z") #'save-buffer)
     (define-key map (kbd "C-x s") #'ignore)
+    (define-key map (kbd "C-x C-s") #'ignore)
 
     ;; Goto
     (define-key map (kbd "M-g M-g") #'goto-line)
@@ -148,7 +149,7 @@
     (define-key map (kbd "s-h") #'previous-buffer)
     (define-key map (kbd "s-l") #'next-buffer)
 
-    ;; Misc
+
     (define-key map (kbd "C-S-SPC") #'my/insert-space-no-move)
     (define-key map (kbd "C-,")     #'recenter-top-bottom)
     (define-key map (kbd "C-c h")   #'help-command)
