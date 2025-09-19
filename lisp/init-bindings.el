@@ -192,6 +192,12 @@
     (define-key map (kbd "M-a") #'org-agenda-list)
     (define-key map (kbd "M-t") #'org-todo-list)
 
+    ;; Magit
+    (define-key map (kbd "C-x C-g") #'magit-status)
+    (global-set-key (kbd "C-c C-s") #'magit-stash)
+    (declare-function my-magit-diff-file "init-magit")
+    (global-set-key (kbd "C-c C-d") #'my-magit-diff-file)
+
     ;; Region helpers
     (dolist (k '("C-x p" "C-x C-p"))
       (define-key map (kbd k)

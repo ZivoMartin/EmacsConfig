@@ -45,6 +45,7 @@
 (require 'init-projectile)
 (require 'init-isearch)
 (require 'init-drag-stuff)
+(require 'init-dired)
 (require 'init-bindings)
 ;; (require 'init-evil)
 
