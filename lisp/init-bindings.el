@@ -55,19 +55,6 @@
   (local-set-key (kbd "C-c C-b")    #'xref-go-back))
 (add-hook 'eglot-managed-mode-hook #'my/eglot-keybindings)
 
-
-;; (defun my/vterm-dispatch (emacs-fn vterm-key &optional shift meta ctrl)
-;;   "Return a command that calls VTERM-KEY in vterm or EMACS-FN otherwise."
-;;   (lambda ()
-;;     (interactive)
-;;     (if (derived-mode-p 'vterm-mode)
-;;         (progn
-;;           (message "[martin] vterm key: %s (s:%s m:%s c:%s)" vterm-key shift meta ctrl)
-;;           (vterm-send-key vterm-key shift meta ctrl))
-;;       (progn
-;;         (message "[martin] emacs fn: %s" emacs-fn)
-;;         (call-interactively emacs-fn)))))
-
 ;; Helper for vterm binding dispatch
 (defun my/vterm-dispatch (emacs-fn vterm-key &optional shift meta ctrl)
   "Call VTERM-KEY in vterm/vterm-copy-mode or EMACS-FN otherwise."
@@ -164,8 +151,16 @@
       (my/vterm-dispatch #'swap-line-up "<up>" nil nil nil))
     (define-key map (kbd "<down>")
       (my/vterm-dispatch #'swap-line-down "<down>" nil nil nil))
-    (define-key map (kbd "<left>") #'undo)
-    ;; (define-key map (kbd "<right>" #'redo)
+    (define-key map (kbd "<left>")
+       (my/vterm-dispatch #'undo-fu-only-undo "<left>" nil nil nil))
+    (define-key map (kbd "<right>")
+       (my/vterm-dispatch #'undo-fu-only-redo "<right>" nil nil nil))
+    (define-key map (kbd "C-/")
+                (lambda ()
+                  (interactive)
+                  (if (derived-mode-p 'vterm-mode)
+                    (vterm-undo)
+                    (ignore))))
 
     ;; Scrolling & buffer nav
     (define-key map (kbd "s-k") #'my-scroll-up)
@@ -190,6 +185,7 @@
     ;; Projectile
     (define-key map (kbd "C-f") #'projectile-find-file)
     (define-key map (kbd "C-b") #'projectile-switch-to-buffer)
+    (define-key map (kbd "s-g") #'projectile-grep)
 
     ;; Org
     (define-key map (kbd "C-!") #'org-todo)

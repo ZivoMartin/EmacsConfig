@@ -25,10 +25,6 @@
 (setq-default c-basic-offset 4)      ;; Indentation size while programming
 (setq c-default-style "linux")       ;; Indentation style
 
-(use-package vertico
-  :ensure t
-  :init (vertico-mode))
-
 (use-package savehist
   :init
   (setq savehist-additional-variables '(kill-ring))
@@ -72,6 +68,8 @@
 
 (which-key-mode t)
 
+(use-package undo-fu
+  :ensure t)
 
 (provide 'init-editing)
 ;;; init-editing.el ends here

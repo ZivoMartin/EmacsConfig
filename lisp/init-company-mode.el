@@ -68,6 +68,12 @@
     (setq company-backends
           (mapcar #'company-mode/backend-with-yas company-backends))))
 
+(use-package vertico
+  :ensure t
+  :init (vertico-mode))
+
+
+
 (provide 'init-company-mode)
 ;;; init-company-mode.el ends here
 
