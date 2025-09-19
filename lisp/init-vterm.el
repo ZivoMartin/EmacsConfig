@@ -1,4 +1,4 @@
-;;; init-vterm.el --- VTerm configuration and helpers -*- lexical-binding: t; -*-
+;;; init-vterm.el -- Summary: config for vterm ;;; -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;; - Split terminal to the right (C-c t)
@@ -32,8 +32,11 @@
             (display-monitor-attributes-list)))
 
 (defun my/make-frame-on-monitor (attrs &optional params)
-  "Create a frame on monitor attributes attrs.
-ATTRS are the attributes of the laptop screen."
+  "Create a new frame positioned on a monitor described by ATTRS.
+
+ATTRS is an alist of monitor attributes, as returned by
+`display-monitor-attributes-list'.  Optional PARAMS is an alist of
+additional frame parameters to merge with the defaults."
   (let* ((geom (alist-get 'geometry attrs))
          (left (nth 0 geom))
          (top  (nth 1 geom)))
@@ -41,6 +44,15 @@ ATTRS are the attributes of the laptop screen."
                           (top  . ,top)
                           (fullscreen . maximized))
                         params))))
+
+;; Keep your extra vterm tweaks here.
+(defun my/vterm-setup-keybindings ()
+  "Per-buffer vterm setup."
+
+  ;; Activate the emulation map only in this vterm buffer.
+  (setq-local my/vterm-override-active t)
+  ;; Keep subword-mode active in copy-mode for consistency.
+  (subword-mode 1))
 
 (defun my/open-emacs-on-laptop ()
   "Open Emacs frame with vterm inside on labtop."
@@ -53,70 +65,7 @@ ATTRS are the attributes of the laptop screen."
       (vterm))))
 
 (use-package vterm
-  :ensure t
-  :demand t
-  :commands (vterm)
-  :init
-  ;; Let Emacs/vterm see these keys (remove from vterm's exceptions)
-  (with-eval-after-load 'vterm
-    (dolist (key '("C-h" "C-l" "<return>" "C-p" "M-p" "C-S-p"
-                   "M-h" "M-l" "C-ù" "M-ù" "S-<return>"))
-      (setq vterm-keymap-exceptions (delete key vterm-keymap-exceptions))))
-  :config
-  ;; ---------------------------------------------------------------------------
-  ;; Emulation map that overrides ALL minor modes (including martin-mode)
-  ;; ---------------------------------------------------------------------------
-
-  ;; Buffer-local flag to enable our emulation map in vterm buffers only.
-  (defvar-local my/vterm-override-active nil
-    "When non-nil, enable `my/vterm-override-map` via `emulation-mode-map-alists`.")
-
-  ;; The actual override keymap used in vterm buffers.
-  (defvar my/vterm-override-map
-    (let ((map (make-sparse-keymap)))
-      ;; Movement
-      (define-key map (kbd "C-h") #'vterm-send-left)
-      (define-key map (kbd "C-l") #'vterm-send-right)
-
-      ;; Subword / paragraph movement (send to shell)
-      (define-key map (kbd "M-h") #'vterm-send-M-b)
-      (define-key map (kbd "M-l") #'vterm-send-M-f)
-
-      (define-key map (kbd "<up>")   #'vterm-send-up)
-      (define-key map (kbd "<down>") #'vterm-send-down)
-      (define-key map (kbd "<right>") #'vterm-send-right)
-      (define-key map (kbd "<left>") #'vterm-send-left)
-      
-      ;; Deletion
-      (define-key map (kbd "C-p")   #'vterm-send-backspace) ; delete char backward
-      (define-key map (kbd "M-p")   (lambda () (interactive) (vterm-send-key "<backspace>" nil t))) ; M-BS (shell-level)
-      (define-key map (kbd "C-S-p") #'vterm-send-C-w) ; delete word backward (shell)
-      (define-key map (kbd "C-ù") #'vterm-send-C-k)
-
-      (define-key map (kbd "<backspace>") #'vterm-send-C-l)
-
-      ;; Enter: switch frame; Shift+Enter sends RET to shell
-      (define-key map (kbd "<return>")
-                (if (> (length (display-monitor-attributes-list)) 1)
-                    #'other-frame
-                  #'other-window))
-      
-      (define-key map (kbd "S-<return>") #'vterm-send-return)
-      map)
-    "Keymap that should override minor modes inside `vterm-mode` buffers.")
-
-  ;; Install our emulation map once. This gives it higher precedence than minor modes.
-  (add-to-list 'emulation-mode-map-alists
-               `((my/vterm-override-active . ,my/vterm-override-map)))
-
-  ;; Keep your extra vterm tweaks here.
-  (defun my/vterm-setup-keybindings ()
-    "Per-buffer vterm setup. martin-mode stays on; these keys override it in vterm."
-    ;; Activate the emulation map only in this vterm buffer.
-    (setq-local my/vterm-override-active t)
-    ;; Keep subword-mode active in copy-mode for consistency.
-    (subword-mode 1))
-  (add-hook 'vterm-mode-hook #'my/vterm-setup-keybindings))
+  :ensure t)
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here

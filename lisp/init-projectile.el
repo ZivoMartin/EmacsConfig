@@ -1,69 +1,64 @@
-;;; init-projectile.el --- Projectile configuration -*- lexical-binding: t; -*-
+;;; init-projectile.el --- Fast Projectile + Helm setup -*- lexical-binding: t; -*-
 ;;; Commentary:
-;; Projectile setup with directory-by-directory completion for files.
-;; Press TAB to complete only up to the next folder segment (e.g., "folder1/"),
-;; instead of autocompleting to a full file.
+;; Lean config for Projectile + Helm.
+;; - Projectile: caching + alien indexing for speed.
+;; - Helm: slimmed sources, fast find-files.
+;; - Helm-Projectile: integrates everything.
+;; - Extra: GC optimization in minibuffer to avoid freezes.
 
 ;;; Code:
 
-;; Ensure use-package is available
-(eval-when-compile
-  (require 'use-package))
-
+;; ----------------------
+;; Projectile
+;; ----------------------
 (use-package projectile
   :ensure t
-  :diminish projectile-mode
   :init
-  ;; Define the prefix key for projectile (used by projectile’s own maps)
-  (setq projectile-keymap-prefix (kbd "C-c p"))
+  (setq projectile-project-search-path '("~/Travail" "~/.emacs.d" "~/kth"))
+  (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'alien) ;; use git/rg, faster
+  :config
+  (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
+  (setq projectile-indexing-method 'native))
 
-  ;; Make file prompts do *directory-wise* completion.
-  ;; This affects any vanilla completing-read UI (Vertico/Default minibuffer).
-  ;; - 'partial-completion makes "fol<TAB>" -> "folder1/"
-  ;; - Keep others for flexibility; override only the *file* category.
-  (setq completion-styles '(substring partial-completion flex))
-  (setq completion-category-overrides '((file (styles partial-completion))))
+;; ----------------------
+;; Helm
+;; ----------------------
+(use-package helm
+  :ensure t
+  :init
+  ;; GC optimization in minibuffer (avoids lag)
+  (defun my/minibuffer-setup-hook ()
+    (setq gc-cons-threshold most-positive-fixnum))
+  (defun my/minibuffer-exit-hook ()
+    (setq gc-cons-threshold 800000))
+  (add-hook 'minibuffer-setup-hook #'my/minibuffer-setup-hook)
+  (add-hook 'minibuffer-exit-hook #'my/minibuffer-exit-hook)
+
+  ;; Slim down sources to avoid slow lookups
+  (setq helm-for-files-preferred-list
+        '(helm-source-buffers-list
+          helm-source-recentf
+          helm-source-projectile-files-list))
 
   :config
-  ;; Enable projectile globally
-  (projectile-mode +1)
+  (helm-mode 1)
 
-  ;; Indexing & caching
-  (setq projectile-indexing-method 'alien)   ;; or 'native
-  (setq projectile-enable-caching t)
-
-  ;; Completion system selection.
-  ;; We prefer *default* here so we get the file-category completion
-  ;; behavior (partial-completion). If Helm is present, it already
-  ;; supports hierarchical navigation nicely, so use it.
-  (cond
-   ((featurep 'helm)
-    (setq projectile-completion-system 'helm))
-   (t
-    (setq projectile-completion-system 'default)))
-
-  ;; If Ivy is installed, tell Ivy to *not* hijack Projectile’s
-  ;; completing-read calls. This lets our file-category completion
-  ;; (partial-completion) take effect for projectile prompts.
-  (with-eval-after-load 'ivy
-    ;; Fallback to the original completing-read for Projectile callers.
-    ;; `nil` means “don’t use Ivy for this caller”.
-    (add-to-list 'ivy-completing-read-handlers-alist
-                 '(projectile-completing-read . nil))
-    (add-to-list 'ivy-completing-read-handlers-alist
-                 '(projectile-switch-project . nil))
-    (add-to-list 'ivy-completing-read-handlers-alist
-                 '(projectile-find-file . nil)))
-
-  ;; Optional: if you *do* use Helm, this makes things even nicer.
+  ;; Navigation
   (with-eval-after-load 'helm
-    (require 'helm-projectile nil t))
+    (define-key helm-map (kbd "C-j") #'helm-previous-line)
+    (define-key helm-map (kbd "C-k") #'helm-next-line)
+    (define-key helm-map (kbd "C-p") #'delete-backward-char)))
 
-  ;; Search path for auto-discovery of projects
-  (setq projectile-project-search-path '("~"))
-
-  ;; Action on switch-project
-  (setq projectile-switch-project-action #'projectile-dired))
+;; ----------------------
+;; Helm-Projectile
+;; ----------------------
+(use-package helm-projectile
+  :ensure t
+  :after (helm projectile)
+  :config
+  (helm-projectile-on))
 
 (provide 'init-projectile)
 ;;; init-projectile.el ends here

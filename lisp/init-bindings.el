@@ -1,24 +1,20 @@
 ;;; init-bindings.el --- Custom key bindings as an activatable minor mode -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; This rewrites the original global keybindings into a toggleable minor mode.
-;; Enable per buffer with:
-;;   (martin-mode 1)
-;; Or globally with:
-;;   (martin-global-mode 1)
+;; This merges normal bindings and vterm bindings.
+;; On conflict, dispatch based on whether we are in vterm-mode.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 (require 'subword)
 (require 'org)
+(require 'vterm)
 
 ;;;; Helpers & state ---------------------------------------------------------
 
 (defvar-local martin--subword-was-active nil
   "Whether `subword-mode' was active before enabling `martin-mode'.")
-
-;;;; Swapping & misc commands ------------------------------------------------
 
 (defun swap-line-up ()
   "Swap current line with the one above."
@@ -47,51 +43,76 @@
   (interactive)
   (transpose-words 1))
 
-(defun my-scroll-up ()
-  "Scroll up 3 lines."
-  (interactive)
-  (scroll-up-line 3))
-
-(defun my-scroll-down ()
-  "Scroll down 3 lines."
-  (interactive)
-  (scroll-down-line 3))
-
-(defun my/insert-space-no-move ()
-  "Insert a space at point without moving point after insertion."
-  (interactive)
-  (save-excursion (insert " ")))
-
-(defun toggle-comment-on-line ()
-  "Comment or uncomment current line."
-  (interactive)
-  (comment-or-uncomment-region (line-beginning-position)
-                               (line-end-position)))
+(defun my-scroll-up () (interactive) (scroll-up-line 3))
+(defun my-scroll-down () (interactive) (scroll-down-line 3))
+(defun my/insert-space-no-move () (interactive) (save-excursion (insert " ")))
+(defun toggle-comment-on-line () (interactive)
+  (comment-or-uncomment-region (line-beginning-position) (line-end-position)))
 
 (defun my/eglot-keybindings ()
   "Custom keybindings for Eglot-enabled buffers."
   (local-set-key (kbd "C-<return>") #'xref-find-definitions)
   (local-set-key (kbd "C-c C-b")    #'xref-go-back))
-
 (add-hook 'eglot-managed-mode-hook #'my/eglot-keybindings)
+
+
+;; (defun my/vterm-dispatch (emacs-fn vterm-key &optional shift meta ctrl)
+;;   "Return a command that calls VTERM-KEY in vterm or EMACS-FN otherwise."
+;;   (lambda ()
+;;     (interactive)
+;;     (if (derived-mode-p 'vterm-mode)
+;;         (progn
+;;           (message "[martin] vterm key: %s (s:%s m:%s c:%s)" vterm-key shift meta ctrl)
+;;           (vterm-send-key vterm-key shift meta ctrl))
+;;       (progn
+;;         (message "[martin] emacs fn: %s" emacs-fn)
+;;         (call-interactively emacs-fn)))))
+
+;; Helper for vterm binding dispatch
+(defun my/vterm-dispatch (emacs-fn vterm-key &optional shift meta ctrl)
+  "Call VTERM-KEY in vterm/vterm-copy-mode or EMACS-FN otherwise."
+  (lambda ()
+    (interactive)
+    (if (and (derived-mode-p 'vterm-mode)
+             (not (bound-and-true-p vterm-copy-mode)))
+        (vterm-send-key vterm-key shift meta ctrl)
+      (call-interactively emacs-fn))))
+
+(defun my-beginning-of-line ()
+  "Move to the first non-whitespace character."
+  (interactive)
+  (let ((pos (point)))
+    (back-to-indentation)
+    (when (= pos (point))
+      (beginning-of-line))))
 
 ;;;; Keymap -----------------------------------------------------------------
 
 (defvar martin-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Movements
-    (define-key map (kbd "C-h") #'backward-char)
-    (define-key map (kbd "C-l") #'forward-char)
+    ;; Movements (conflicts handled)
+    (define-key map (kbd "C-h")
+      (my/vterm-dispatch #'backward-char "<left>"))
+    (define-key map (kbd "C-l")
+      (my/vterm-dispatch #'forward-char "<right>"))
     (define-key map (kbd "C-k") #'next-line)
     (define-key map (kbd "C-j") #'previous-line)
 
-    (define-key map (kbd "M-h") #'subword-backward)
-    (define-key map (kbd "M-l") #'subword-forward)
+    (define-key map (kbd "M-h")
+      (my/vterm-dispatch #'subword-backward "<left>" nil nil t))
+    (define-key map (kbd "M-l")
+      (my/vterm-dispatch #'subword-forward "<right>" nil nil t))
     (define-key map (kbd "M-j") #'backward-paragraph)
     (define-key map (kbd "M-k") #'forward-paragraph)
 
+    (define-key map (kbd "C-M-l") #'forward-sexp)
+    (define-key map (kbd "C-M-h") #'backward-sexp)
+
+    (global-set-key (kbd "s-a") #'my-beginning-of-line)
+
     ;; Zoom
-    (define-key map (kbd "C-+") #'text-scale-increase)
+    (define-key map (kbd "C-=") #'text-scale-increase)
+    (define-key map (kbd "C--") #'text-scale-decrease)
 
     ;; Saving
     (define-key map (kbd "C-z") #'save-buffer)
@@ -102,124 +123,101 @@
     (define-key map (kbd "M-g M-g") #'goto-line)
     (define-key map (kbd "M-g M-f") #'move-to-column)
 
-    ;; Delete overrides -> ignore
+    ;; Deletion (conflicts handled)
     (dolist (key '("DEL" "C-DEL" "M-DEL"
                    "<deletechar>" "<backspace>"
                    "C-<deletechar>" "M-<deletechar>"
                    "C-<backspace>"  "M-<backspace>"))
       (define-key map (kbd key) #'ignore))
 
-    (define-key map (kbd "C-p")   #'delete-backward-char)
-    (define-key map (kbd "M-p")   #'subword-backward-kill)
-    (define-key map (kbd "C-S-p") #'backward-kill-word)
-
-    (define-key map (kbd "C-ù") #'kill-line)
+    (define-key map (kbd "C-p")
+      (my/vterm-dispatch #'delete-backward-char "<backspace>"))
+    (define-key map (kbd "M-p")
+      (my/vterm-dispatch #'subword-backward-kill "w" nil nil t))
+    (define-key map (kbd "C-S-p")
+      (my/vterm-dispatch #'backward-kill-word "w" nil nil t))
+    (define-key map (kbd "C-ù")
+      (my/vterm-dispatch #'kill-line "k" nil nil t))
     (define-key map (kbd "M-ù") #'kill-whole-line)
 
-    ;; Caps mapping (might be system/TTY dependent)
+    ;; Caps mapping
     (define-key map (kbd "<capslock>") #'event-apply-control-modifier)
 
-    ;; Window/frame
+    ;; Window/frame (conflicts handled)
     (define-key map (kbd "<return>")
-                (if (> (length (display-monitor-attributes-list)) 1)
-                    #'other-frame
-                  #'other-window))
-    (define-key map (kbd "s-o") #'other-window)
+       (if (> (length (display-monitor-attributes-list)) 1)
+           #'other-frame
+         #'other-window))
+    
+    (define-key map (kbd "M-o") #'other-window)
     (define-key map (kbd "C-&") #'delete-window)
     (define-key map (kbd "C-é") #'split-window-right)
     (define-key map (kbd "C-\"") #'split-window-below)
     (define-key map (kbd "C-²") #'delete-other-windows)
 
-    ;; Removing old windows bindings
+    ;; Remove old window bindings
+    (dolist (k '("C-x 0" "C-x 1" "C-x 2" "C-x 3"))
+      (define-key map (kbd k) #'ignore))
 
-    (define-key map (kbd "C-x 0") #'ignore)
-    (define-key map (kbd "C-x 1") #'ignore)
-    (define-key map (kbd "C-x 2") #'ignore)
-    (define-key map (kbd "C-x 3") #'ignore)
+    ;; Arrows
+    (define-key map (kbd "<up>")
+      (my/vterm-dispatch #'swap-line-up "<up>" nil nil nil))
+    (define-key map (kbd "<down>")
+      (my/vterm-dispatch #'swap-line-down "<down>" nil nil nil))
+    (define-key map (kbd "<left>") #'undo)
+    ;; (define-key map (kbd "<right>" #'redo)
 
-    ;; Arrows -> swap things
-    (define-key map (kbd "<up>")    #'swap-line-up)
-    (define-key map (kbd "<down>")  #'swap-line-down)
-    (define-key map (kbd "<left>")  #'swap-word-left)
-    (define-key map (kbd "<right>") #'swap-word-right)
-
-    ;; Scrolling & buffer nav (super-based)
+    ;; Scrolling & buffer nav
     (define-key map (kbd "s-k") #'my-scroll-up)
     (define-key map (kbd "s-j") #'my-scroll-down)
     (define-key map (kbd "s-h") #'previous-buffer)
     (define-key map (kbd "s-l") #'next-buffer)
-
 
     (define-key map (kbd "C-S-SPC") #'my/insert-space-no-move)
     (define-key map (kbd "C-,")     #'recenter-top-bottom)
     (define-key map (kbd "C-c h")   #'help-command)
     (define-key map (kbd "C-%")     #'query-replace)
 
-    ;; Vterm
+    ;; Vterm management
     (declare-function my/vterm-split-right "init-vterm")
     (declare-function my/vterm-new-buffer "init-vterm")
     (declare-function my/open-emacs-on-laptop "init-vterm")
-
     (define-key map (kbd "C-c t") #'my/vterm-split-right)
     (define-key map (kbd "C-c n") #'my/vterm-new-buffer)
     (define-key map (kbd "C-c C-t") #'my/open-emacs-on-laptop)
+    (define-key map (kbd "C-t") #'vterm-copy-mode)
 
     ;; Projectile
-    (define-key map (kbd "C-f") #'find-file)
-    (define-key map (kbd "C-b") #'switch-to-buffer)
-
-    (define-key map (kbd "C-c p p") #'projectile-switch-project)
-    (define-key map (kbd "C-c p g") #'projectile-grep)
-    (define-key map (kbd "C-c p r") #'projectile-replace)
-    (define-key map (kbd "C-c p s") #'projectile-ripgrep)
-    (define-key map (kbd "C-c p b") #'projectile-switch-to-buffer)
-    (define-key map (kbd "C-c p k") #'projectile-kill-buffers)
+    (define-key map (kbd "C-f") #'projectile-find-file)
+    (define-key map (kbd "C-b") #'projectile-switch-to-buffer)
 
     ;; Org
     (define-key map (kbd "C-!") #'org-todo)
     (define-key map (kbd "M-a") #'org-agenda-list)
     (define-key map (kbd "M-t") #'org-todo-list)
 
-    ;; region from bol to previous line
-    (define-key map (kbd "C-x p")
-      (lambda ()
-        (interactive)
-        (execute-kbd-macro (kbd "C-SPC C-a C-p"))))
+    ;; Region helpers
+    (dolist (k '("C-x p" "C-x C-p"))
+      (define-key map (kbd k)
+        (lambda () (interactive)
+          (execute-kbd-macro (kbd "C-SPC C-a C-p")))))
 
-    (define-key map (kbd "C-x C-p")
-      (lambda ()
-        (interactive)
-        (execute-kbd-macro (kbd "C-SPC C-a C-p"))))
-
-    ;; Line commenting
+    ;; Commenting
     (define-key map (kbd "C-;") #'toggle-comment-on-line)
-
     map)
   "Keymap for `martin-mode'.")
 
 ;;;; Minor modes -------------------------------------------------------------
 
-;;;###autoload
 (define-minor-mode martin-mode
-  "Toggle personal keybindings in the current buffer.
-When enabled, installs a set of custom keybindings.
-It also turns on `subword-mode' for the buffer and remembers/restores its prior
-state when disabling."
+  "Toggle personal keybindings in the current buffer."
   :init-value nil
   :lighter " ⌨"
   :keymap martin-mode-map
   (if martin-mode
-      ;; Enabling
-      (progn
-        (when (fboundp 'subword-mode)
-          (setq martin--subword-was-active (bound-and-true-p subword-mode))
-          (subword-mode 1)))
-    ;; Disabling
-    (when (and (fboundp 'subword-mode)
-               (not martin--subword-was-active))
-      (subword-mode 0))))
+      (subword-mode 1)
+    (subword-mode 0)))
 
-;;;###autoload
 (define-globalized-minor-mode martin-global-mode
   martin-mode
   (lambda () (martin-mode 1))

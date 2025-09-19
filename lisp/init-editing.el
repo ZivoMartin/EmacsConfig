@@ -15,13 +15,8 @@
 (save-place-mode 1)
 
 ;; keep track of saved places in ~/.emacs.d/places
-(setq save-place-file (concat user-emacs-directory "places"))
+(setq save-place-file (concat user-emacs-directory "var/places"))
 
-;; Emacs can automatically create backup files. This tells Emacs to
-;; put all backups in ~/.emacs.d/backups. More info:
-;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Backup-Files.html
-(setq backup-directory-alist `(("." . ,(concat user-emacs-directory
-                                               "backups"))))
 (setq auto-save-default nil)
 
 ;; Indentations
@@ -39,11 +34,8 @@
   (setq savehist-additional-variables '(kill-ring))
   (savehist-mode 1))
 
-;; Basic sexp navigation using built-in functions
-(global-set-key (kbd "C-M-l") #'forward-sexp)    ;; jump to closing
-(global-set-key (kbd "C-M-h") #'backward-sexp)   ;; jump to opening
-(global-set-key (kbd "M-a")   #'backward-up-list)
-(global-set-key (kbd "M-e")   #'down-list)
+(global-display-line-numbers-mode 1)
+(column-number-mode 1)
 
 ;; Enable these only in programming modes
 (add-hook 'prog-mode-hook
@@ -71,6 +63,15 @@
 (setq lsp-idle-delay 3 lsp-completion-max-results 30)
 
 (global-auto-revert-mode 1)
+
+(use-package which-key
+  :ensure t
+  :demand t
+  :config
+  (setq which-key-idle-delay 0.5))
+
+(which-key-mode t)
+
 
 (provide 'init-editing)
 ;;; init-editing.el ends here

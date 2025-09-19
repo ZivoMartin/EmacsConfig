@@ -1,14 +1,13 @@
 ;;; init-company-mode.el --- Company-mode autocompletion setup -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Configure `company-mode` for autocompletion in programming and text modes.
-;; This sets a low delay, minimum prefix length, and enables global mode.
+;; Configure `company-mode` and `yasnippet` for autocompletion.
 
 ;;; Code:
 
-(require 'init-elpa)
-
+;; Company
 (use-package company
+  :ensure t
   :defer 1
   :hook
   ((prog-mode . company-mode)
@@ -23,6 +22,18 @@
   :config
   (global-company-mode 1))
 
+;; Yasnippet
+(use-package yasnippet
+  :ensure t
+  :defer t
+  :config
+  (yas-global-mode 1))
+
+(use-package yasnippet-snippets
+  :ensure t
+  :after yasnippet)
+
+;; Extra keybindings with company
 (with-eval-after-load 'company
   ;; Make C-p delete one char even when the popup is active
   (define-key company-active-map (kbd "C-p")
@@ -36,17 +47,27 @@
       (company-abort)
       (call-interactively #'subword-backward-kill)))
 
-  ;; Navigate candidates with C-j / C-k
-  (define-key company-active-map (kbd "C-k") #'company-select-next)
-  (define-key company-active-map (kbd "C-j") #'company-select-previous)
-
-  ;; Keep your variant too
+  ;; Alternative variant
   (define-key company-active-map (kbd "C-S-p")
     (lambda () (interactive)
       (company-abort)
-      (call-interactively #'backward-kill-word))))
+      (call-interactively #'backward-kill-word)))
 
+  ;; Enable yasnippet in company
+  (with-eval-after-load 'yasnippet
+    (defvar company-mode/enable-yas t
+      "Enable yasnippet for all backends.")
 
+    (defun company-mode/backend-with-yas (backend)
+      (if (or (not company-mode/enable-yas)
+              (and (listp backend) (member 'company-yasnippet backend)))
+          backend
+        (append (if (consp backend) backend (list backend))
+                '(:with company-yasnippet))))
+
+    (setq company-backends
+          (mapcar #'company-mode/backend-with-yas company-backends))))
 
 (provide 'init-company-mode)
 ;;; init-company-mode.el ends here
+

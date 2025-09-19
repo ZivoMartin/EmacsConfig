@@ -47,6 +47,8 @@
     (global-set-key (kbd "C-s")   #'isearch-forward)
     (global-set-key (kbd "s-s")   #'isearch-backward)
 
+    (define-key map (kbd "s-s") #'isearch-repeat-backward)
+
     (define-key map (kbd "RET")       #'my/isearch-exit-or-abort)
     (define-key map (kbd "<return>")  #'my/isearch-exit-or-abort)
 

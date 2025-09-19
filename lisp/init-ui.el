@@ -26,7 +26,7 @@
 (setq-default line-spacing 0.4)
 
 ;;; Clipboard & selection behavior
-(setq
+(setq-default
  x-select-enable-clipboard t
  x-select-enable-primary t
  save-interprogram-paste-before-kill t

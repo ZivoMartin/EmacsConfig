@@ -7,6 +7,7 @@
 
 ;; At the top of init-org-mode.el, before calling it:
 (autoload 'martin-global-mode "init-bindings" nil t)
+(autoload 'martin/text-setup "init-text" nil t)
 
 (use-package org
   :ensure t
@@ -15,20 +16,25 @@
   (setq org-agenda-files '("~/kth/protocols/protocols.org"
                            "~/kth/security/security.org"
                            "~/kth/integrating/integrating.org"
-                           "~/Travail/miking-docgen/todo.org"
+                           "~/kth/philosophy/philosophy.org"
+                           "~/Travail/miking-docgen/docgen.org"
+                           "~/Travail/Dake/dake.org"
                            "~/.emacs.d/emacs.org"
                            "~/org/kth.org"
+                           "~/org/kth_deadlines.org"
                            "~/org/notes.org"
                           ))
 
   ;; Basic Org setup
+
+  (martin/text-setup)
+  (flyspell-mode 1)
+
   (setq org-directory "~/org/")
   (setq org-default-notes-file (concat org-directory "notes.org"))
   (setq org-todo-keywords '((sequence "TODO" "DONE")))
   (setq org-startup-folded t)
   (setq org-log-done 'time))
-
-(declare-function martin-global-mode "init-bindings" (&optional arg))
 
 (with-eval-after-load 'org
   (martin-global-mode 1))
