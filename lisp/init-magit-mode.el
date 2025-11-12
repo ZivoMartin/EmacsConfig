@@ -9,7 +9,7 @@
 (autoload 'martin-mode "init-bindings" nil t)
 
 (use-package magit
-  :ensure t
+  :defer t
   :config
   (define-key magit-file-section-map (kbd "C-j") #'previous-line)
   

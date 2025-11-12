@@ -8,13 +8,11 @@
 
 ;; Ensure pdf-tools is installed and initialized
 (use-package pdf-tools
-  :ensure t
+  :defer t
   :config
   (pdf-tools-install) ;; Initialize pdf-tools
-  (setq-default pdf-view-display-size 'fit-page)
-  ;; Open PDFs in pdf-view mode by default
-  (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode)))
-
+  (setq-default pdf-view-display-size 'fit-page))
+ 
 ;; Convenience keybindings
 (with-eval-after-load 'pdf-view
   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
@@ -39,6 +37,11 @@
 (with-eval-after-load 'pdf-view
   (define-key pdf-view-mode-map (kbd "C-c C-a") #'my/pdf-generate-appearances))
 
-(provide 'init-pdf)
+(setq pdf-view-use-scaling t)
+(setq-default pdf-view-display-size 'fit-page)
 
+(add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+
+
+(provide 'init-pdf)
 ;;; init-pdf.el ends here

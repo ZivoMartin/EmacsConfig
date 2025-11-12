@@ -45,15 +45,6 @@ additional frame parameters to merge with the defaults."
                           (fullscreen . maximized))
                         params))))
 
-;; Keep your extra vterm tweaks here.
-(defun my/vterm-setup-keybindings ()
-  "Per-buffer vterm setup."
-
-  ;; Activate the emulation map only in this vterm buffer.
-  (setq-local my/vterm-override-active t)
-  ;; Keep subword-mode active in copy-mode for consistency.
-  (subword-mode 1))
-
 (defun my/open-emacs-on-laptop ()
   "Open Emacs frame with vterm inside on labtop."
   (interactive)
@@ -66,6 +57,16 @@ additional frame parameters to merge with the defaults."
 
 (use-package vterm
   :ensure t)
+
+(require 'vterm)
+
+(defun my/vterm-find-file ()
+  "Run `find-file` starting from the current vterm directory."
+  (interactive)
+  (when (eq major-mode 'vterm-mode)
+    (let* ((dir (vterm--get-pwd))
+           (default-directory (or dir default-directory)))
+      (call-interactively #'find-file))))
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here

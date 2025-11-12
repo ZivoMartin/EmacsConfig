@@ -6,7 +6,6 @@
 ;;; Code:
 
 ;; At the top of init-org-mode.el, before calling it:
-(autoload 'martin-global-mode "init-bindings" nil t)
 (autoload 'martin/text-setup "init-text" nil t)
 
 (use-package org
@@ -36,8 +35,5 @@
   (setq org-startup-folded t)
   (setq org-log-done 'time))
 
-(with-eval-after-load 'org
-  (martin-global-mode 1))
 
 (provide 'init-org-mode)
-;;; init-org-mode.el ends here

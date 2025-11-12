@@ -15,7 +15,7 @@
 (save-place-mode 1)
 
 ;; keep track of saved places in ~/.emacs.d/places
-(setq save-place-file (concat user-emacs-directory "var/places"))
+(setq save-place-file (concat user-emacs-directory "var/placesk"))
 
 (setq auto-save-default nil)
 
@@ -58,6 +58,9 @@
 
 (setq lsp-idle-delay 3 lsp-completion-max-results 30)
 
+(add-to-list 'warning-suppress-types '(undo discard-info))
+
+(setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode 1)
 
 (use-package which-key
@@ -70,6 +73,17 @@
 
 (use-package undo-fu
   :ensure t)
+
+(setq make-backup-files nil)
+
+(use-package auto-complete)
+(require 'auto-complete)
+(require 'auto-complete-config)
+(ac-config-default)
+(global-auto-complete-mode t)
+(ac-flyspell-workaround)
+
+(use-package focus)
 
 (provide 'init-editing)
 ;;; init-editing.el ends here

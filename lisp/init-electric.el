@@ -7,6 +7,8 @@
 
 ;;; Code:
 
+(require 'electric)
+
 ;; Enable automatic insertion of matching pairs like (), {}, [], "", etc.
 (electric-pair-mode 1)
 
@@ -22,6 +24,9 @@
 
 ;; Allow automatic pairing of additional characters (e.g., < and >)
 (setq electric-pair-text-pairs '((?< . ?>)))
+
+(use-package electric-spacing
+      :ensure t)
 
 ;; Do not insert a newline between pairs automatically
 (setq electric-pair-open-newline-between-pairs nil)

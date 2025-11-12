@@ -1,0 +1,17 @@
+;;; init-dockerfile.el --- Basic Dockerfile setup -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Simple configuration for Dockerfile editing support in Emacs.
+
+;;; Code:
+
+;; Ensure dockerfile-mode is installed
+(use-package dockerfile-mode
+  :ensure t
+  :mode ("Dockerfile\\'" . dockerfile-mode)
+  :config
+  ;; Optional: Set default indentation level
+  (setq dockerfile-mode-command "docker"))
+
+(provide 'init-dockerfile)
+;;; init-dockerfile.el ends here;;; init-electric.el

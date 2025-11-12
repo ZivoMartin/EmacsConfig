@@ -7,24 +7,20 @@
 
 (require 'package)
 
-;; Define the list of package repositories (association list of name . URL)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("gnu"   . "https://elpa.gnu.org/packages/")))
 
-;; Initialize the package system, but only if it hasn't already been initialized
-(unless package--initialized
-  (package-initialize))
+;; Only refresh if we’ve never done it before
+(unless package-archive-contents
+  (package-refresh-contents))
 
-;; Installing use-package if not already installed
+;; Ensure use-package is installed once
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
   (package-install 'use-package))
 
 (require 'use-package)
-
-;; Always ensure packages are installed when using `use-package`
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure nil) 
 
 (provide 'init-elpa)
 ;;; init-elpa.el ends here

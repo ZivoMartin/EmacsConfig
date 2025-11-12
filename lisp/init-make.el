@@ -34,6 +34,6 @@ or `C-c m` runs `make` in the directory containing that Makefile."
 
 
 ;; Bind C-c C-c globally to run make without confirmation
-(global-set-key (kbd "C-c C-c") #'my-compile-make)
+(global-set-key (kbd "C-q") #'my-compile-make)
 
 (provide 'init-make)

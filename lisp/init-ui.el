@@ -55,5 +55,13 @@
 ;;; Show line numbers in programming buffers
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
+(require 'time)
+
+(setq display-time-default-load-average nil)
+(setq display-time-day-and-date t display-time-24hr-format t)
+(display-time-mode t)
+
+(use-package all-the-icons)
+
 (provide 'init-ui)
 ;;; init-ui.el ends here
