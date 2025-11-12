@@ -11,16 +11,16 @@
       '(("melpa" . "https://melpa.org/packages/")
         ("gnu"   . "https://elpa.gnu.org/packages/")))
 
-;; Only refresh if we’ve never done it before
-(unless package-archive-contents
-  (package-refresh-contents))
+(setq package-enable-at-startup nil)
 
 ;; Ensure use-package is installed once
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure nil) 
+
+;; Automatically `:ensure t` for all packages
+(setq use-package-always-ensure t)
 
 (provide 'init-elpa)
 ;;; init-elpa.el ends here

@@ -76,14 +76,9 @@
 
 (setq make-backup-files nil)
 
-(use-package auto-complete)
-(require 'auto-complete)
-(require 'auto-complete-config)
-(ac-config-default)
-(global-auto-complete-mode t)
-(ac-flyspell-workaround)
 
-(use-package focus)
+(use-package focus
+:ensure t)
 
 (provide 'init-editing)
 ;;; init-editing.el ends here
