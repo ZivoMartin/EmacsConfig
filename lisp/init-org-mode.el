@@ -12,16 +12,9 @@
   :ensure t
   :config
 
-  (setq org-agenda-files '("~/kth/protocols/protocols.org"
-                           "~/kth/security/security.org"
-                           "~/kth/integrating/integrating.org"
-                           "~/kth/philosophy/philosophy.org"
-                           "~/Travail/miking-docgen/docgen.org"
-                           "~/Travail/Dake/dake.org"
+  (setq org-agenda-files '("~/Projects/miking-docgen/docgen.org"
                            "~/.emacs.d/emacs.org"
-                           "~/org/kth.org"
-                           "~/org/kth_deadlines.org"
-                           "~/org/notes.org"
+                           "~/kth/kth.org"
                           ))
 
   ;; Basic Org setup

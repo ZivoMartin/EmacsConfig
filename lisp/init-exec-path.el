@@ -8,9 +8,9 @@
 ;;; Code:
 
 (use-package exec-path-from-shell
-  :if (memq window-system '(mac ns x))  ;; Only apply in GUI Emacs
   :config
-  (exec-path-from-shell-initialize))   ;; Import env vars like PATH, etc.
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "PATH"))
 
 (provide 'init-exec-path)
 ;;; init-exec-path.el ends here

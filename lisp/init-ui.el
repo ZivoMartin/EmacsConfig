@@ -43,11 +43,6 @@
   :config
   (load-theme 'atom-one-dark t))
 
-;;; Dynamic window resizing with golden ratio
-(use-package golden-ratio
-  :config
-  (golden-ratio-mode 1))
-
 ;;; Highlight nested parentheses by color in code
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))

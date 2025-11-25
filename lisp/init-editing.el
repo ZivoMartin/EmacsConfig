@@ -19,6 +19,14 @@
 
 (setq auto-save-default nil)
 
+(use-package smartparens
+  :config
+  (require 'smartparens-config)
+  (smartparens-global-mode 1)
+  :bind (:map smartparens-mode-map
+              ("C-c C-d" . sp-unwrap-sexp)))
+
+
 ;; Indentations
 (setq-default indent-tabs-mode nil)  ;; Use spaces, no tab
 (setq-default tab-width 4)           ;; Tabs are 4 espaces longs
@@ -63,18 +71,16 @@
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode 1)
 
-(use-package which-key
-  :ensure t
-  :demand t
-  :config
-  (setq which-key-idle-delay 0.5))
-
-(which-key-mode t)
-
 (use-package undo-fu
   :ensure t)
 
-(setq make-backup-files nil)
+;; Put all backups (~ files) in one directory
+(setq backup-directory-alist '((".*" . "~/.emacs-backups")))
+(setq make-backup-files t)
+
+;; Put all autosaves (#...# files) in one directory
+(setq auto-save-file-name-transforms `((".*" "~/.emacs-autosaves/" t)))
+(setq auto-save-list-file-prefix "~/.emacs-autosaves/sessions-")
 
 
 (use-package focus

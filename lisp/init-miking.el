@@ -32,7 +32,7 @@
 ;; ---------- Font-lock (highlighting) ----------
 (defconst miking--keywords
   '("let" "in" "if" "then" "else" "type" "match" "with" "recursive" "include"
-    "sem" "syn" "lang" "end" "utest" "mexpr" "use" "con" "switch" "case" "lam"))
+    "sem" "syn" "lang" "end" "utest" "mexpr" "use" "con" "switch" "case" "lam" "using"))
 
 (defconst miking--keywords-regexp
   (regexp-opt miking--keywords 'symbols))

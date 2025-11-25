@@ -24,16 +24,9 @@
    mc/mark-more-like-this-extended)
   :init
   ;; Optional: avoid accidental cursor creep
+  (setq mc/always-repeat-command t)
+  (setq mc/always-run-for-all t)
   (setq mc/list-file (expand-file-name "mc-lists.el" user-emacs-directory))
-  :bind
-  (("C-<left>" . mc/edit-lines)
-   ("C-<right>" . mc/edit-ends-of-lines)
-   ("M-<left>" . mc/edit-beginnings-of-lines)
-   ("C-<down>" . mc/mark-next-like-this)
-   ("C-<up>" . mc/mark-previous-like-this)
-   ("M-<right>" . mc/mark-all-like-this)
-   ("M-<down>" . set-rectangular-region-anchor)
-   ("M-<up>" . mc/mark-more-like-this-extended)))
 
 
 ;; Optional: enable region-based bindings for multiple cursors

@@ -8,16 +8,16 @@
 ;; ----------------------
 ;; Projectile
 ;; ----------------------
+
 (use-package projectile
   :ensure t
-  :init
-  (setq projectile-project-search-path '("~/Travail" "~/.emacs.d" "~/kth"))
-  (setq projectile-enable-caching t)
-  (setq projectile-indexing-method 'alien) ;; use git/rg, faster
+  :demand t
   :config
   (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
-  (setq projectile-indexing-method 'native))
+  (setq projectile-project-search-path '("~/Projects" "~/.emacs.d" "~/kth"))
+  (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'alien))
 
 (provide 'init-projectile)
 ;;; init-projectile.el ends here

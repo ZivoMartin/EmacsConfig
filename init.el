@@ -11,7 +11,6 @@
  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror 'nomessage)
 
-;; (require 'init-var)
 (require 'init-elpa)
 
 (require 'init-exec-path)
@@ -33,6 +32,7 @@
 (require 'init-pdf)
 (require 'init-make)
 (require 'init-text)
+(require 'init-dockerfile)
 
 (require 'init-ui)
 (require 'init-miscellaneous)
@@ -42,11 +42,11 @@
 (require 'init-vterm)
 (require 'init-multi-cursor)
 (require 'init-org-mode)
-(require 'init-projectile)
 (require 'init-isearch)
 (require 'init-drag-stuff)
-(require 'init-dired)
 (require 'init-bindings)
+(require 'init-projectile)
+;; (require 'init-dashboard)
 ;; (require 'init-evil)
 
 (provide 'init)
