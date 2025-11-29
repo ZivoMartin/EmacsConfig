@@ -23,37 +23,6 @@
   (let ((buffer (generate-new-buffer-name "vterm")))
     (vterm buffer)))
 
-;; --- Find the labtop screen -----------------
-(defun my/laptop-monitor-attrs ()
-  "Return labtop screen attributes."
-  (seq-find (lambda (attrs)
-              (when-let ((name (alist-get 'name attrs)))
-                (string-match-p "eDP" name)))
-            (display-monitor-attributes-list)))
-
-(defun my/make-frame-on-monitor (attrs &optional params)
-  "Create a new frame positioned on a monitor described by ATTRS.
-
-ATTRS is an alist of monitor attributes, as returned by
-`display-monitor-attributes-list'.  Optional PARAMS is an alist of
-additional frame parameters to merge with the defaults."
-  (let* ((geom (alist-get 'geometry attrs))
-         (left (nth 0 geom))
-         (top  (nth 1 geom)))
-    (make-frame (append `((left . ,left)
-                          (top  . ,top)
-                          (fullscreen . maximized))
-                        params))))
-
-(defun my/open-emacs-on-laptop ()
-  "Open Emacs frame with vterm inside on labtop."
-  (interactive)
-  (let* ((attrs (or (my/laptop-monitor-attrs)
-                    (car (display-monitor-attributes-list))))
-         (frame (my/make-frame-on-monitor attrs '((name . "laptop")))))
-    (select-frame-set-input-focus frame)
-    (when (require 'vterm nil t)
-      (vterm))))
 
 (use-package vterm
   :ensure t)

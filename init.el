@@ -40,7 +40,7 @@
 (require 'init-magit-mode)
 (require 'init-company-mode)
 (require 'init-vterm)
-(require 'init-multi-cursor)
+;;(require 'init-multi-cursor)
 (require 'init-org-mode)
 (require 'init-isearch)
 (require 'init-drag-stuff)

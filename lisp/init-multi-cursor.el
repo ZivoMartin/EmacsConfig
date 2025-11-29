@@ -1,5 +1,4 @@
 ;;; init-multi-cursor.el --- Multi-cursor support -*- lexical-binding: t; -*-
-
 ;; Keywords: editing, cursors
 ;; Package-Requires: ((emacs "26.1") (multiple-cursors "1.4.0"))
 
@@ -27,19 +26,6 @@
   (setq mc/always-repeat-command t)
   (setq mc/always-run-for-all t)
   (setq mc/list-file (expand-file-name "mc-lists.el" user-emacs-directory))
-
-
-;; Optional: enable region-based bindings for multiple cursors
-(use-package region-bindings-mode
-  :ensure t
-  :after multiple-cursors
-  :config
-  (region-bindings-mode-enable)
-  (define-key region-bindings-mode-map "n" 'mc/mark-next-like-this)
-  (define-key region-bindings-mode-map "p" 'mc/mark-previous-like-this)
-  (define-key region-bindings-mode-map "a" 'mc/mark-all-like-this)
-  (define-key region-bindings-mode-map "m" 'mc/mark-more-like-this-extended)
-  (define-key region-bindings-mode-map "d" 'mc/mark-all-like-this-dwim))
 
 (provide 'init-multi-cursor)
 ;;; init-multi-cursor.el ends here

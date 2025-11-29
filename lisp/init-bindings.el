@@ -11,6 +11,7 @@
 (require 'org)
 (require 'vterm)
 (require 'projectile)
+
 ;;;; Helpers & state ---------------------------------------------------------
 
 (defvar-local martin--subword-was-active nil
@@ -239,11 +240,23 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
                 (my/vterm-dispatch #'subword-backward "<left>" nil nil t))
     (define-key map (kbd "M-;")
                 (my/vterm-dispatch #'subword-forward "<right>" nil nil t))
-    
-    (define-key map (kbd "M-l") 
-                (my/vterm-dispatch #'backward-paragraph "<up>"))
+
+
+    (define-key map (kbd "M-l")
+                (lambda ()
+                  (interactive)
+                  (if (and (minibufferp)
+                           (eq minibuffer-history-variable 'shell-command-history))
+                      (previous-history-element 1)
+                    (funcall (my/vterm-dispatch #'backward-paragraph "<up>")))))
+
     (define-key map (kbd "M-k")
-                (my/vterm-dispatch #'forward-paragraph "<down>"))
+                (lambda ()
+                  (interactive)
+                  (if (and (minibufferp)
+                           (eq minibuffer-history-variable 'shell-command-history))
+                      (next-history-element 1)
+                    (funcall (my/vterm-dispatch #'forward-paragraph "<down>")))))
 
     (define-key map (kbd "C-M-;") #'forward-sexp)
     (define-key map (kbd "C-M-j") #'backward-sexp)    
@@ -275,6 +288,14 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     (define-key map (kbd "M-SPC") 'er/expand-region)
     (define-key map (kbd "M-C-SPC") 'er/contract-region)
 
+
+    ;; Compile
+    
+    (require 'init-make)
+    (define-key map (kbd "C-M-v") #'shell-command)
+    (define-key map (kbd "C-q") #'my-compile-make)
+    (define-key map (kbd "C-v") #'my-shell-command-in-make-dir)
+    (define-key map (kbd "M-v") #'my-run-last-shell-command-in-make-dir)
 
     ;; Deletion (conflicts handled)
     (dolist (key '("DEL" "C-DEL" "M-DEL"
@@ -309,6 +330,7 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     (define-key map (kbd "C-2") #'split-window-right)
     (define-key map (kbd "C-3") #'split-window-below)
     (define-key map (kbd "C-1") #'delete-other-windows)
+    (define-key map (kbd "M-i") #'delete-other-windows)
 
     ;; Remove old window bindings
     (dolist (k '("C-x 0" "C-x 1" "C-x 2" "C-x 3"))
@@ -340,8 +362,8 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     (declare-function my/vterm-new-buffer "init-vterm")
     (declare-function my/open-emacs-on-laptop "init-vterm")
     (define-key map (kbd "C-c t") #'my/vterm-split-right)
+    (define-key map (kbd "C-c C-t") #'my/vterm-split-right)    
     (define-key map (kbd "C-c n") #'my/vterm-new-buffer)
-    (define-key map (kbd "C-c C-t") #'my/open-emacs-on-laptop)
     (define-key map (kbd "C-t") #'vterm-copy-mode)
 
     (define-key map (kbd "C-f") #'my/find-file)

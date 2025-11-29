@@ -33,7 +33,29 @@ or `C-c m` runs `make` in the directory containing that Makefile."
   (compile compile-command)) ;; use it directly, no prompt
 
 
-;; Bind C-c C-c globally to run make without confirmation
-(global-set-key (kbd "C-q") #'my-compile-make)
+(defun my-shell-command-in-make-dir ()
+  "Run `shell-command` but with `default-directory` set to the Makefile directory."
+  (interactive)
+  (let ((makefile-dir (locate-dominating-file default-directory "Makefile")))
+    (if makefile-dir
+        (let ((default-directory makefile-dir))
+          (call-interactively 'shell-command))  ;; open prompt at correct dir
+      (call-interactively 'shell-command))))      ;; fallback: normal behavior
+
+
+(defun my-run-last-shell-command-in-make-dir ()
+  "Run the most recent shell command from `shell-command-history`,
+but executed in the directory containing the nearest Makefile."
+  (interactive)
+  (let* ((cmd (car shell-command-history)))
+    (if (not cmd)
+        (message "No shell-command history yet.")
+      (let ((makefile-dir (locate-dominating-file default-directory "Makefile")))
+        (if makefile-dir
+            (let ((default-directory makefile-dir))
+              (shell-command cmd))
+          (shell-command cmd))))))
+
+
 
 (provide 'init-make)
