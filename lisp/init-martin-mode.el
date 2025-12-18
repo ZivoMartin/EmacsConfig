@@ -74,6 +74,7 @@
     ;; Windows managment
 
     (keymap-set map "M-o" 'other-window)
+    (keymap-set map "C-M-o" 'martin-previous-window)
     (keymap-set map "C-0" 'delete-window)
     (keymap-set map "C-1" 'delete-other-windows)
     (keymap-set map "M-i" 'delete-other-windows)
@@ -114,6 +115,7 @@
     ;; File editting
 
     (keymap-set map "C-<tab>" 'indent-rigidly)
+    (keymap-set map "C-M-<tab>" 'martin-force-tab-insert)
     (keymap-set map "M-S-SPC" 'martin-insert-space)
     (keymap-set map "C-r" 'query-replace)
     (keymap-set map "M-r" 'replace-string)

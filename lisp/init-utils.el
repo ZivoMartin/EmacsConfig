@@ -48,16 +48,17 @@
       (delete-region (car bounds) (point)))))
 
 (defun martin-copy-line ()
-  "Copy the whole line the cursor is currently on."  
+  "Copy the whole line the cursor is currently on."
   (interactive)
   (let ((bounds (bounds-of-thing-at-point 'line)))
     (when bounds
+      (message "Copied!")
       (kill-ring-save (car bounds) (cdr bounds)))))
 
 (defun martin-copy-buffer ()
   "Copy the entire contents of the current buffer."
   (interactive)
-  (message "Copied !")
+  (message "Copied!")
   (kill-ring-save (point-min) (point-max)))
 
 (defun martin-select-buffer ()
@@ -79,6 +80,11 @@
   (interactive)
   (save-excursion
     (insert " ")))
+
+(defun martin-previous-window ()
+  "Like `other-window` but with the non cyclic order."
+  (interactive)
+  (other-window -1))
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

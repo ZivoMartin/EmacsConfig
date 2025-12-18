@@ -27,6 +27,8 @@
 ;; (require 'init-drag-stuff.el)
 ;; (require 'init-minibuffer)
 ;; (require 'init-pdf)
+;; (require 'init-search-engine)
+;; (require 'init-yanking)
 
 ;; Emacs customisation
 
@@ -45,9 +47,7 @@
 ;; (require 'init-react)
 ;; (require 'init-c)
 (require 'init-zig)
-;; (require 'init-roc)
 ;; (require 'init-haskell)
-;; (require 'init-prolog)
 ;; (require 'init-miking)
 ;; (require 'init-markdown)
 ;; (require 'init-latex)
