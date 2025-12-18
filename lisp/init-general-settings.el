@@ -23,5 +23,8 @@
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
+(setq ring-bell-function 'ignore)
+(setq use-dialog-box nil)
+
 (provide 'init-general-settings)
 ;;; init-general-settings.el ends here

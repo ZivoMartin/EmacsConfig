@@ -8,8 +8,9 @@
 * TODO Look for a keybind to confirm the replaced string in string replace
 * TODO Add yasnippet support in company mode impl
 * TODO Close and remove from fs keybind
-* TODO Create multiple folder in which we put each family of languages.
+* TODO Create multiple folder in which we put each family of configurations.
 It is the occasion to learn advanced project managment in elisp.
 * TODO Add a plugin to setup windows size
 * TODO Being able to interact with the running processes (especially killing them by name easily)
 * TODO Allow alt-f4 from the laptop
+* TODO Impl open-thing-at-point

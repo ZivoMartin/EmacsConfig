@@ -18,6 +18,7 @@
 (require 'init-magit)
 (require 'init-vterm)
 (require 'init-isearch)
+(require 'init-rainbow-delimiters)
 ;; (require 'init-org)
 ;; (require 'init-projectile)
 ;; (require 'init-multi-cursor)
@@ -29,6 +30,7 @@
 ;; (require 'init-pdf)
 ;; (require 'init-search-engine)
 ;; (require 'init-yanking)
+;; (require 'init-expand-region)
 
 ;; Emacs customisation
 

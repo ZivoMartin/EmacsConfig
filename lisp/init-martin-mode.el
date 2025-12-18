@@ -10,6 +10,7 @@
 (require 'init-martin-group)
 (require 'init-indents)
 (require 'init-delete-pair)
+(require 'init-expand-region)
 
 (makunbound 'martin-mode-keymap)
 (defvar martin-mode-keymap
@@ -84,13 +85,12 @@
     ;; Selection
 
     (keymap-set map "C-M-v" 'martin-select-buffer)
-    ;; (use-package expand-region)
-    ;; (require 'expand-region)
-    ;; (define-key map (kbd "M-SPC") 'er/expand-region)
-    ;; (define-key map (kbd "M-C-SPC") 'er/contract-region)
+    ;; (keymap-set map "M-SPC" 'er/expand-region)
+    ;; (keymap-set map "M-C-SPC" 'er/contract-region)
 
 
-    ;; arrows
+    ;; Arrows
+
     ;;     (define-key map (kbd "<up>")
     ;;             (my/vterm-dispatch #'swap-line-up "<up>" nil nil nil))
     ;; (define-key map (kbd "<down>")
@@ -99,7 +99,6 @@
     ;;             (my/vterm-dispatch #'undo-fu-only-undo "<left>" nil nil nil))
     ;; (define-key map (kbd "<right>")
     ;;             (my/vterm-dispatch #'undo-fu-only-redo "<right>" nil nil nil))
-
 
     ;; Copying
 

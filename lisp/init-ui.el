@@ -17,8 +17,6 @@
 (use-package atom-one-dark-theme
   :config
   (load-theme 'atom-one-dark t))
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
 
 (setq-default line-spacing 0.4)
 (setq-default apropos-do-all t)
@@ -27,6 +25,9 @@
 
 (setq split-height-threshold 160)
 (setq split-width-threshold 100)
+
+(global-display-line-numbers-mode 1)
+(column-number-mode 1)
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

@@ -13,5 +13,10 @@
   (interactive)
   (insert "    "))
 
+(setq-default indent-tabs-mode nil)  ;; Use spaces, no tab
+(setq-default tab-width 4)           ;; Tabs are 4 espaces longs
+(setq-default c-basic-offset 4)      ;; Indentation size while programming
+(setq c-default-style "linux")       ;; Indentation style
+
 (provide 'init-indents)
 ;;; init-indents.el ends here
