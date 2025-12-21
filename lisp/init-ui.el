@@ -9,8 +9,6 @@
 (tool-bar-mode -1)
 (setq inhibit-startup-message t)
 
-(set-face-attribute 'default nil :height 110)
-(display-line-numbers-mode 1)
 (blink-cursor-mode 0)
 (set-cursor-color "#ccccad")
 
@@ -28,6 +26,8 @@
 
 (global-display-line-numbers-mode 1)
 (column-number-mode 1)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

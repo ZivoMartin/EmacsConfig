@@ -8,29 +8,26 @@
 
 (require 'init-general-settings)
 (require 'init-use-package)
-(require 'init-utils)
 (require 'init-martin-group)
 (require 'init-martin-mode)
 
-;; Emacas plugins
+;; Emacs plugins
 
 (require 'init-eglot)
 (require 'init-magit)
 (require 'init-vterm)
 (require 'init-isearch)
 (require 'init-rainbow-delimiters)
-;; (require 'init-org)
+(require 'init-org)
 ;; (require 'init-projectile)
 ;; (require 'init-multi-cursor)
 ;; (require 'init-company)
-;; (require 'init-dashboard.el)
-;; (require 'init-electric.el)
-;; (require 'init-drag-stuff.el)
-;; (require 'init-minibuffer)
-;; (require 'init-pdf)
-;; (require 'init-search-engine)
-;; (require 'init-yanking)
-;; (require 'init-expand-region)
+;; (require 'init-dashboard)
+(require 'init-electric)
+(require 'init-minibuffer)
+(require 'init-pdf)
+(require 'init-search-engine)
+(require 'init-expand-region)
 
 ;; Emacs customisation
 
@@ -58,3 +55,4 @@
 
 (provide 'init)
 ;;; init.el ends here
+(put 'erase-buffer 'disabled nil)

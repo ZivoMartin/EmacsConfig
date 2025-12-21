@@ -4,6 +4,9 @@
 
 ;;; Code:
 
+(use-package nasm-mode
+  :hook (nasm-mode . eglot-ensure))
+
 
 
 (provide 'init-nasm)

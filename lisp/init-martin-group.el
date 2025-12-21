@@ -7,7 +7,7 @@
 
 (defgroup martin nil
   "Personal configuration."
-  :group 'convinience)
+  :group 'convenience)
 
 
 (provide 'init-martin-group)

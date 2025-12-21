@@ -8,8 +8,8 @@
   (let ((map (make-sparse-keymap)))
     (keymap-set map "C-l" 'previous-line-or-history-element)
     (keymap-set map "C-k" 'next-line-or-history-element)
-    (keymap-set map "M-l" 'previous-line-or-history-element)
-    (keymap-set map "M-k" 'next-line-or-history-element)
+    (keymap-set map "M-l" 'scroll-up-command)
+    (keymap-set map "M-k" 'scroll-down-command)
     map)
   "Overriding `martin-mode`.")
 

@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-;; (use-package expand-region)
+(use-package expand-region)
 
 (provide 'init-expand-region)
 ;;; init-expand-region.el ends here

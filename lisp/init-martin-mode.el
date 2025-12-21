@@ -11,6 +11,7 @@
 (require 'init-indents)
 (require 'init-delete-pair)
 (require 'init-expand-region)
+(require 'init-org)
 
 (makunbound 'martin-mode-keymap)
 (defvar martin-mode-keymap
@@ -18,8 +19,8 @@
     
     ;; Cursor movments
 
-    (keymap-set map "C-;" 'forward-char)
-    (keymap-set map "C-j" 'backward-char)
+    (keymap-set map "C-;" 'right-char)
+    (keymap-set map "C-j" 'left-char)
     (keymap-set map "C-k" 'next-line)
     (keymap-set map "C-l" 'previous-line)
 
@@ -33,7 +34,6 @@
 
     (keymap-set map "C-M-;" 'forward-sexp)
     (keymap-set map "C-M-j" 'backward-sexp)
-
 
     ;; Goto
 
@@ -58,7 +58,7 @@
     (keymap-set map "M-d" 'kill-word)
 
     (keymap-set map "C-x C-p" 'martin-kill-line-left)
-    (keymap-set map "C-x p" 'kill-line-left)
+    (keymap-set map "C-x p" 'martin-kill-line-left)
     (keymap-set map "C-'" 'kill-line)
     (keymap-set map "M-'" 'kill-whole-line)
     
@@ -85,20 +85,12 @@
     ;; Selection
 
     (keymap-set map "C-M-v" 'martin-select-buffer)
-    ;; (keymap-set map "M-SPC" 'er/expand-region)
-    ;; (keymap-set map "M-C-SPC" 'er/contract-region)
+    (keymap-set map "M-SPC" 'er/expand-region)
+    (keymap-set map "C-M-SPC" 'er/contract-region)
 
 
-    ;; Arrows
-
-    ;;     (define-key map (kbd "<up>")
-    ;;             (my/vterm-dispatch #'swap-line-up "<up>" nil nil nil))
-    ;; (define-key map (kbd "<down>")
-    ;;             (my/vterm-dispatch #'swap-line-down "<down>" nil nil nil))
-    ;; (define-key map (kbd "<left>")
-    ;;             (my/vterm-dispatch #'undo-fu-only-undo "<left>" nil nil nil))
-    ;; (define-key map (kbd "<right>")
-    ;;             (my/vterm-dispatch #'undo-fu-only-redo "<right>" nil nil nil))
+    ;; (keymap-set map "<up>" 'swap-line-up)
+    ;; (keymap-set map "<down>" 'swap-line-down)
 
     ;; Copying
 
@@ -127,14 +119,24 @@
     (keymap-set map "C--" 'text-scale-decrease)
 
     ;; Vterm
-
-    (keymap-set map "C-c C-t" 'vterm-other-window)
-    (keymap-set map "C-c C-n" 'vterm)
+    (keymap-set map "C-c t" 'martin-vterm-force-other-window)
+    (keymap-set map "C-c n" 'martin-vterm-force-new)
+    
+    (keymap-set map "C-c C-t" 'martin-vterm-other-window)
+    (keymap-set map "C-c C-n" 'martin-vterm-new)
     (keymap-set map "C-t" 'martin-vterm-copy-mode)
 
     ;; Magit
     
     (keymap-set map "C-x C-g" 'magit-status)
+
+    ;; Org
+
+    (keymap-set map "C-n" 'martin-org-todo)
+    (keymap-set map "M-n" 'martin-org-insert-heading)
+    
+    (keymap-set map "M-q" 'org-agenda-list)
+    (keymap-set map "M-t" 'org-todo-list)
 
     ;; Search
 

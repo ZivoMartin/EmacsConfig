@@ -26,5 +26,8 @@
 (setq ring-bell-function 'ignore)
 (setq use-dialog-box nil)
 
+(setq confirm-kill-processes nil)
+(setq confirm-nonexistent-file-or-buffer nil)
+
 (provide 'init-general-settings)
 ;;; init-general-settings.el ends here

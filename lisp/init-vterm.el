@@ -9,47 +9,39 @@
 
 (defvar vterm-path (expand-file-name "emacs-libvterm" manual-installation-directory))
 
+(defmacro martin-vterm-send-key (name key &rest flags)
+  "Create a function with the name NAME sending KEY to vterm.
+FLAGS can include :shift, :meta, :ctrl."
+  (let ((shift (if (memq :shift flags) t nil))
+        (meta  (if (memq :meta flags)  t nil))
+        (ctrl  (if (or (memq :ctrl flags)
+                       (memq :control flags))
+                   t nil)))
+    `(defun ,name ()
+       ,(format "Send %s to vterm." key)
+       (interactive)
+       (vterm-send-key ,key ,shift ,meta ,ctrl))))
 
-(defun martin-vterm-backspace ()
-  "Send backspace to vterm."
-  (interactive)
-  (message "heyyy")
-  (vterm-send-key "<backspace>"))
+(martin-vterm-send-key martin-vterm-delete-char "d" :ctrl)
+(martin-vterm-send-key martin-vterm-delete-word "d" :meta)
+(martin-vterm-send-key martin-vterm-backspace "<backspace>")
+(martin-vterm-send-key martin-vterm-meta-backspace "<backspace>" :meta)
 
-(defun martin-vterm-meta-backspace ()
-  "Send meta-backspace to vterm."
-  (interactive)
-  (vterm-send-key "<backspace>" nil t))
+(martin-vterm-send-key martin-vterm-up "<up>")
+(martin-vterm-send-key martin-vterm-down "<down>")
+(martin-vterm-send-key martin-vterm-right "<right>")
+(martin-vterm-send-key martin-vterm-left "<left>")
 
-(defun martin-vterm-up ()
-  "Send up to vterm."
-  (interactive)
-  (vterm-send-key "<up>"))
+(martin-vterm-send-key martin-vterm-control-up "<up>" :ctrl)
+(martin-vterm-send-key martin-vterm-control-down "<down>" :ctrl)
+(martin-vterm-send-key martin-vterm-control-right "<right>" :ctrl)
+(martin-vterm-send-key martin-vterm-control-left "<left>" :ctrl)
 
-(defun martin-vterm-down ()
-  "Send down to vterm."
-  (interactive)
-  (vterm-send-key "<down>"))
+(martin-vterm-send-key martin-vterm-interrupt "c" :ctrl)
+(martin-vterm-send-key martin-vterm-clear "l" :ctrl)
 
-(defun martin-vterm-right ()
-  "Send right to vterm."
-  (interactive)
-  (vterm-send-key "<right>"))
-
-(defun martin-vterm-left ()
-  "Send left to vterm."
-  (interactive)
-  (vterm-send-key "<left>"))
-
-(defun martin-vterm-interrupt ()
-  "Send left to vterm."
-  (interactive)
-  (vterm-send-key "c" nil nil t))
-
-(defun martin-vterm-clear ()
-  "Clear the vterm buffer."
-  (interactive)
-  (vterm-send-key "l" nil nil t))
+(martin-vterm-send-key martin-vterm-beginning-of-line "a" :ctrl)
+(martin-vterm-send-key martin-vterm-end-of-line "e" :ctrl)
 
 (use-package vterm
   :load-path vterm-path)
@@ -59,24 +51,71 @@
     (keymap-set map "C-p" #'martin-vterm-backspace)
     (keymap-set map "M-p" #'martin-vterm-meta-backspace)
     
+    (keymap-set map "C-d" #'martin-vterm-delete-char)
+    (keymap-set map "M-d" #'martin-vterm-delete-word)
+    
     (keymap-set map "C-;" #'martin-vterm-right)
     (keymap-set map "C-l" #'martin-vterm-up)
     (keymap-set map "C-k" #'martin-vterm-down)
     (keymap-set map "C-j" #'martin-vterm-left)
 
-    (keymap-set map "C-c" #'martin-vterm-interrupt)
+    (keymap-set map "M-;" #'martin-vterm-control-right)
+    (keymap-set map "M-l" #'martin-vterm-control-up)
+    (keymap-set map "M-k" #'martin-vterm-control-down)
+    (keymap-set map "M-j" #'martin-vterm-control-left)
+
+    (keymap-set map "C-c C-c" #'martin-vterm-interrupt)
     (keymap-set map "C-v" #'martin-vterm-clear)
+
+    (keymap-set map "C-a" #'martin-vterm-beginning-of-line)
+    (keymap-set map "C-e" #'martin-vterm-end-of-line)
 
     map)
   "Keymap for `martin-vterm-override-mode`.")
 
 (defun martin-vterm-copy-mode ()
-  "Activate or desactivate copy mode, does nothing if we are not inside a vterm buffer, does nothing."
-  (when derived-mode-p 'vterm-mode
-	(vterm-copy-mode (if (bound-and-true-p vterm-copy-mode)
-			     (t) (-1)))))
+  "Toggle vterm copy mode if in a vterm buffer."
+  (interactive)
+  (when (derived-mode-p 'vterm-mode)
+    (vterm-copy-mode 'toggle)))
 
+(defun martin-vterm-base-name (&optional name)
+  "Return the base (non-starred) vterm name.
+If NAME is nil, use the current buffer name."
+   (concat "vterm-" (or name (buffer-name))))
 
+(defun martin-vterm-new (&optional force-create name)
+  "Create a new vterm buffer in the current window.
+If NAME is provided, use it as the base name.
+FORCE-CREATE forces vterm to create a new buffer."
+  (interactive)
+  (let* ((vterm-buffer-name (martin-vterm-base-name name))
+         (host-name (buffer-name))
+         (buffer-exists (get-buffer vterm-buffer-name)))
+
+    (if (and (not force-create) buffer-exists)
+        (switch-to-buffer vterm-buffer-name)
+      (vterm (generate-new-buffer-name vterm-buffer-name)))))
+
+(defun martin-vterm-other-window (&optional force-create name)
+  "Create a new vterm buffer in another window.
+If NAME is provided, use it as the base name.
+FORCE-CREATE forces vterm to create a new buffer."
+  (interactive)
+  (let ((win (split-window-right)))
+    (set-window-buffer win (buffer-name))
+    (other-window 1)
+    (martin-vterm-new force-create name)))
+
+(defun martin-vterm-force-new (&optional name)
+  "Force the creation of a new vterm buffer with the name NAME on the current buffer."
+  (interactive)
+  (martin-vterm-new t name))
+
+(defun martin-vterm-force-other-window (&optional name)
+  "Force the creation of a new vterm buffer with the name NAME on another window."
+  (interactive)
+  (martin-vterm-other-window t name))
 
 (define-minor-mode martin-vterm-override-mode
   "Emulation layer overriding `martin-mode` in vterm buffers."
@@ -93,7 +132,6 @@
                'martin-vterm-override--emulation-alist))
 
 (add-hook 'vterm-mode-hook #'martin-enable-vterm-override)
-
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here
