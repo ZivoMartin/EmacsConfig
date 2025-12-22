@@ -50,7 +50,7 @@
 (require 'init-c)
 (require 'init-zig)
 ;; (require 'init-haskell)
-;; (require 'init-miking)
+(require 'init-miking)
 ;; (require 'init-markdown)
 ;; (require 'init-latex)
 (require 'init-make)
