@@ -10,8 +10,10 @@
 (require 'init-martin-group)
 (require 'init-indents)
 (require 'init-delete-pair)
+(require 'init-projectile)
 (require 'init-expand-region)
 (require 'init-org)
+(require 'init-yasnippet)
 
 (makunbound 'martin-mode-keymap)
 (defvar martin-mode-keymap
@@ -31,6 +33,7 @@
 
     (keymap-set map "C-e" 'end-of-line)
     (keymap-set map "C-a" 'beginning-of-line)
+    (keymap-set map "M-a" 'back-to-indentation)
 
     (keymap-set map "C-M-;" 'forward-sexp)
     (keymap-set map "C-M-j" 'backward-sexp)
@@ -118,6 +121,22 @@
     (keymap-set map "C-=" 'text-scale-increase)
     (keymap-set map "C--" 'text-scale-decrease)
 
+    ;; Projectile
+
+    (keymap-set map "C-c C-f" 'projectile-find-file)
+    (keymap-set map "C-M-r" 'projectile-replace)
+    (keymap-set map "C-M-g" 'projectile-grep)
+    (keymap-set map "M-e" 'projectile-switch-project)
+
+    ;; Multi Cursors
+
+    (keymap-set map  "C-S-k" 'mc/mark-next-like-this)
+    (keymap-set map  "C-S-l" 'mc/mark-previous-like-this)
+    (keymap-set map  "C-:" 'mc/mark-next-like-this)
+    (keymap-set map  "C-S-j" 'mc/mark-previous-like-this)
+    (keymap-set map  "M-<left>" 'mc/mark-all-like-this)
+    (keymap-set map  "M-<down>" 'set-rectangular-region-anchor)
+
     ;; Vterm
     (keymap-set map "C-c t" 'martin-vterm-force-other-window)
     (keymap-set map "C-c n" 'martin-vterm-force-new)
@@ -142,6 +161,10 @@
 
     (keymap-set map "C-s" 'isearch-forward)
     (keymap-set map "M-s" 'isearch-backward)
+
+    ;; Yasnippet
+
+    (keymap-set map "<return>" 'yas-expand)
     
     map)
   "The keymap containing all my keybindings.")

@@ -82,7 +82,10 @@ FLAGS can include :shift, :meta, :ctrl."
 (defun martin-vterm-base-name (&optional name)
   "Return the base (non-starred) vterm name.
 If NAME is nil, use the current buffer name."
-   (concat "vterm-" (or name (buffer-name))))
+  (let ((base (or name (buffer-name))))
+    (if (string-prefix-p "vterm-" base)
+        base
+      (concat "vterm-" base))))
 
 (defun martin-vterm-new (&optional force-create name)
   "Create a new vterm buffer in the current window.
@@ -119,19 +122,32 @@ FORCE-CREATE forces vterm to create a new buffer."
 
 (define-minor-mode martin-vterm-override-mode
   "Emulation layer overriding `martin-mode` in vterm buffers."
-  :group martin)
+  :group martin
+  :init-value nil
+  :lighter nil)
 
 (defvar martin-vterm-override--emulation-alist
   `((martin-vterm-override-mode . ,martin-vterm-override-mode-map))
   "Entry is the `emulation-mode-map-alist`.")
 
-(defun martin-enable-vterm-override ()
-  "Activate the overwrite mode as an emulation keymap."
-  (martin-vterm-override-mode 1)
-  (add-to-list 'emulation-mode-map-alists
-               'martin-vterm-override--emulation-alist))
+(defun martin--vterm-enter ()
+  "Enable vterm override when entering a vterm buffer."
+  (unless vterm-copy-mode
+    (martin-vterm-override-mode 1)))
 
-(add-hook 'vterm-mode-hook #'martin-enable-vterm-override)
+(defun martin--vterm-handle-copy-mode ()
+  "Enable or disable vterm override depending on copy mode."
+  (if vterm-copy-mode
+      (martin-vterm-override-mode -1)
+    (martin-vterm-override-mode 1)))
+
+(add-hook 'vterm-mode-hook #'martin--vterm-enter)
+(add-hook 'vterm-copy-mode-hook #'martin--vterm-handle-copy-mode)
+
+(unless (member 'martin-vterm-override--emulation-alist
+                emulation-mode-map-alists)
+  (push 'martin-vterm-override--emulation-alist
+        emulation-mode-map-alists))
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here

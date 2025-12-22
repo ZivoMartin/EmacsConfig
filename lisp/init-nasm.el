@@ -4,10 +4,10 @@
 
 ;;; Code:
 
+(require 'init-eglot)
+
 (use-package nasm-mode
-  :hook (nasm-mode . eglot-ensure))
-
-
+  :mode "\\.nasm\\'")
 
 (provide 'init-nasm)
 ;;; init-nasm.el ends here

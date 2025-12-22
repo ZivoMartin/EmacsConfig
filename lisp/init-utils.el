@@ -86,5 +86,9 @@
   (interactive)
   (other-window -1))
 
+(defun martin-beginning-of-line ()
+  "Return at the beginning of the line, but on the last trimming space."
+  )
+
 (provide 'init-utils)
 ;;; init-utils.el ends here

@@ -1,4 +1,4 @@
-* TODO Configure vterm copy mode
+* DONE Configure vterm copy mode
 * TODO Configure vterm-find-file (should work in both copy-mode and vterm-mode)
 * DONE Allow C-l/k to get next/previous search in mini-buffer
 * TODO Implement all the commented files in init.el
@@ -6,7 +6,6 @@
 * TODO Would be great to have a command copying the output of the last command in vterm
 * TODO Uncomment the commented parts in martin-mode once we have internet connection to download required packages
 * TODO Look for a keybind to confirm the replaced string in string replace
-* TODO Add yasnippet support in company mode impl
 * TODO Close and remove from fs keybind
 * TODO Add a plugin to setup windows size
 * TODO Being able to interact with the running processes (especially killing them by name easily)
@@ -14,5 +13,6 @@
 * TODO Impl open-thing-at-point
 * DONE Remove the killing process confirmation when quiting emacs
 * DONE Put emacs in big screen directly
-* TODO Add M-a support
+* DONE Add M-a support
 * DONE Fix the use-package bug
+* TODO Add a keybind to poweroff the machine with confirmation

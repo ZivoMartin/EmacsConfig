@@ -5,6 +5,7 @@
 ;;; Code:
 
 (use-package pdf-tools
+  :defer t
   :config
   (pdf-tools-install)
   (setq-default pdf-view-display-size 'fit-page))

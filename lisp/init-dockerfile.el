@@ -4,7 +4,11 @@
 
 ;;; Code:
 
-
+(use-package dockerfile-mode
+  :ensure t
+  :mode ("Dockerfile\\'" . dockerfile-mode)
+  :config
+  (setq dockerfile-mode-command "docker"))
 
 (provide 'init-dockerfile)
 ;;; init-dockerfile.el ends here

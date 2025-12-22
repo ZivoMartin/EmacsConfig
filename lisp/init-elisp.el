@@ -8,6 +8,5 @@
 (add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
 (add-hook 'emacs-lisp-mode-hook #'checkdoc-minor-mode)
 
-
 (provide 'init-elisp)
 ;;; init-elisp.el ends here
