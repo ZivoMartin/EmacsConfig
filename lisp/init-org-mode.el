@@ -12,9 +12,11 @@
   :ensure t
   :config
 
-  (setq org-agenda-files '("~/Projects/miking-docgen/docgen.org"
+  (setq org-agenda-files '("~/Projects/Fibo/fibo.org"
+                           "~/Projects/miking-docgen/docgen.org"
                            "~/.emacs.d/emacs.org"
                            "~/kth/kth.org"
+                           "~/Random/random.org"
                           ))
 
   ;; Basic Org setup

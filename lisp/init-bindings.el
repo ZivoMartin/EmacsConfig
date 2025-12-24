@@ -104,6 +104,14 @@
       (my/vterm-find-file)
     (call-interactively #'find-file)))
 
+(defun kill-symbol-at-point ()
+  "Kill the entire symbol at point (e.g., part1-part2, part1Part2)."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (when bounds
+      (kill-region (car bounds) (cdr bounds)))))
+
+
 
 (defvar martin--quote-pairs
   '((?\" . ?\")
@@ -259,7 +267,7 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
                     (funcall (my/vterm-dispatch #'forward-paragraph "<down>")))))
 
     (define-key map (kbd "C-M-;") #'forward-sexp)
-    (define-key map (kbd "C-M-j") #'backward-sexp)    
+    (define-key map (kbd "C-M-j") #'backward-sexp)
     (define-key map (kbd "M-a") #'my-beginning-of-line)
 
     ;; Upper / lower
@@ -274,7 +282,6 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     ;; Saving
     (define-key map (kbd "C-z") #'save-buffer)
     (define-key map (kbd "C-x s") #'ignore)
-    (define-key map (kbd "C-x C-s") #'ignore)
 
     ;; Goto
     (define-key map (kbd "M-g M-g") #'goto-line)
@@ -308,6 +315,8 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
                 (my/vterm-dispatch #'delete-backward-char "<backspace>"))
     (define-key map (kbd "M-p")
                 (my/vterm-dispatch #'subword-backward-kill "w" nil nil t))
+    (define-key map (kbd "C-M-p") #'kill-symbol-at-point)
+
     (define-key map (kbd "C-S-p")
                 (my/vterm-dispatch #'backward-kill-word "w" nil nil t))
     (define-key map (kbd "C-'")
@@ -356,13 +365,12 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     (define-key map (kbd "C-r")     #'query-replace)
     (define-key map (kbd "M-r")     #'replace-string)
 
-
     ;; Vterm management
     (declare-function my/vterm-split-right "init-vterm")
     (declare-function my/vterm-new-buffer "init-vterm")
     (declare-function my/open-emacs-on-laptop "init-vterm")
     (define-key map (kbd "C-c t") #'my/vterm-split-right)
-    (define-key map (kbd "C-c C-t") #'my/vterm-split-right)    
+    (define-key map (kbd "C-c C-t") #'my/vterm-split-right)
     (define-key map (kbd "C-c n") #'my/vterm-new-buffer)
     (define-key map (kbd "C-t") #'vterm-copy-mode)
 
@@ -385,16 +393,18 @@ Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
     (define-key map (kbd "M-t") #'org-todo-list)
 
 
+    ;; isearch
+    (global-set-key (kbd "M-s")   #'isearch-backward)
+
     ;; Magit
     (define-key map (kbd "C-x C-g") #'magit-status)
-    (global-set-key (kbd "C-c C-s") #'magit-stash)
 
     ;; Multi-cursor
     (define-key map (kbd "C-S-k")  #'mc/mark-next-like-this)
     (define-key map (kbd "C-S-l")  #'mc/mark-previous-like-this)
 
     (define-key map (kbd "C-:") #'mc/mark-next-like-this)
-    (define-key map (kbd "C-S-j") #'mc/mark-previous-like-this)    
+    (define-key map (kbd "C-S-j") #'mc/mark-previous-like-this)
 
     (define-key map (kbd "M-<left>")  #'mc/mark-all-like-this)
     (define-key map (kbd "M-<down>")  #'set-rectangular-region-anchor)

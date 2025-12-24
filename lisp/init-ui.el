@@ -19,7 +19,7 @@
 ;;; Startup appearance
 (setq inhibit-startup-message t)
 (blink-cursor-mode 0)
-(set-cursor-color "#cccccc")
+(set-cursor-color "#ccccad")
 
 ;;; Font and spacing
 (set-face-attribute 'default nil :height 120)

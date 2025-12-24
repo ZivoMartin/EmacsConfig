@@ -1,0 +1,1678 @@
+;;; init-elpa.el --- Package manager configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Initialize the package manager and ensure `use-package` is installed.
+
+;;; Code:
+
+(require 'package)
+
+(setq package-archives
+      '(("melpa" . "https://melpa.org/packages/")
+        ("gnu"   . "https://elpa.gnu.org/packages/")))
+
+(setq package-enable-at-startup nil)
+
+;; Ensure use-package is installed once
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(require 'use-package)
+
+;; Automatically `:ensure t` for all packages
+(setq use-package-always-ensure t)
+
+(provide 'init-elpa)
+;;; init-elpa.el ends here
+;;; init-editing.el --- General editing enhancements -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; This file contains settings to make editing smoother.
+;; Includes persistent cursor positions, backups, auto-save control,
+;; and indentation preferences.
+
+;;; Code:
+
+(require 'init-elpa)
+
+;; Installed by default, will bring you back where you were when come backing in a file
+(require 'saveplace)
+
+(save-place-mode 1)
+
+;; keep track of saved places in ~/.emacs.d/places
+(setq save-place-file (concat user-emacs-directory "var/placesk"))
+
+(setq auto-save-default nil)
+
+(use-package smartparens
+  :config
+  (require 'smartparens-config)
+  (smartparens-global-mode 1)
+  :bind (:map smartparens-mode-map
+              ("C-c C-d" . sp-unwrap-sexp)))
+
+
+;; Indentations
+(setq-default indent-tabs-mode nil)  ;; Use spaces, no tab
+(setq-default tab-width 4)           ;; Tabs are 4 espaces longs
+(setq-default c-basic-offset 4)      ;; Indentation size while programming
+(setq c-default-style "linux")       ;; Indentation style
+
+(use-package savehist
+  :init
+  (setq savehist-additional-variables '(kill-ring))
+  (savehist-mode 1))
+
+(global-display-line-numbers-mode 1)
+(column-number-mode 1)
+
+;; Enable these only in programming modes
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (show-paren-mode 1)))
+
+(defun open-thing-at-point ()
+  "Open the file or URL at point.
+- If it's a URL, open it in the browser.
+- If it's a path to an existing file, open it in Emacs.
+- Otherwise, show an informative message."
+  (interactive)
+  (let ((thing (string-trim (or (thing-at-point 'url t)
+                                (thing-at-point 'filename t) ""))))
+    (cond
+     ((string-match-p "\\`\\(https?\\|file\\)://" thing)
+      (browse-url thing))
+     ((file-exists-p (expand-file-name thing))
+      (find-file (expand-file-name thing)))
+     (t
+      (message "No valid file or URL at point.")))))
+
+(global-set-key (kbd "M-<return>") #'open-thing-at-point)
+
+(setq lsp-idle-delay 3 lsp-completion-max-results 30)
+
+(add-to-list 'warning-suppress-types '(undo discard-info))
+
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
+
+(use-package undo-fu
+  :ensure t)
+
+;; Put all backups (~ files) in one directory
+(setq backup-directory-alist '((".*" . "~/.emacs-backups")))
+(setq make-backup-files t)
+
+;; Put all autosaves (#...# files) in one directory
+(setq auto-save-file-name-transforms `((".*" "~/.emacs-autosaves/" t)))
+(setq auto-save-list-file-prefix "~/.emacs-autosaves/sessions-")
+
+
+(use-package focus
+:ensure t)
+
+(provide 'init-editing)
+;;; init-editing.el ends here
+;;; init-drag-stuff.el --- Drag Stuff configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; This file configures drag-stuff mode so you can move lines or regions
+;; with M-up / M-down / M-left / M-right.
+
+;;; Code:
+
+
+(use-package drag-stuff
+  :ensure t
+  :hook (after-init . drag-stuff-global-mode)
+  :bind (("M-<up>"    . drag-stuff-up)
+         ("M-<down>"  . drag-stuff-down)
+         ("M-<left>"  . drag-stuff-left)
+         ("M-<right>" . drag-stuff-right)))
+
+(provide 'init-drag-stuff)
+;;; init-drag-stuff.el ends here
+;;; init-miking.el --- Minimal Miking mode for .mc files -*- lexical-binding: t; -*-
+
+;; Basic, fast syntax highlighting for the Miking language:
+;; - Keywords
+;; - Types (identifiers starting with a capital letter)
+;; - Names right after `let` (optionally `recursive`) and `lam`
+;; - Strings
+;; - Comments:
+;;     -- single-line
+;;     /- ... -/ multi-line
+
+(defgroup miking nil
+  "Major mode for the Miking programming language."
+  :group 'languages)
+
+(defvar miking-mode-hook nil
+  "Hook run when entering `miking-mode'.")
+
+;; ---------- Syntax table ----------
+(defvar miking-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; Strings: " ... "
+    (modify-syntax-entry ?\" "\"" st)
+
+    ;; Treat underscore as a word constituent.
+    (modify-syntax-entry ?_ "w" st)
+
+    ;; Default: everything else punctuation unless overridden by font-lock.
+    st)
+  "Syntax table for `miking-mode'.")
+
+;; ---------- Font-lock (highlighting) ----------
+(defconst miking--keywords
+  '("let" "in" "if" "then" "else" "type" "match" "with" "recursive" "include"
+    "sem" "syn" "lang" "end" "utest" "mexpr" "use" "con" "switch" "case" "lam" "using"))
+
+(defconst miking--keywords-regexp
+  (regexp-opt miking--keywords 'symbols))
+
+;; Identifier = word or symbol constituent
+(defconst miking--ident "\\(?:\\sw\\|\\s_\\)+")
+
+(defconst miking-font-lock-keywords
+  `(
+    ;; COMMENTS (put first so they override other faces)
+    ;; Multi-line: /- ... -/
+    ("/-\\(?:.\\|\n\\)*?-/" . (0 font-lock-comment-face t))
+    ;; Single-line: -- ...
+    ("--.*$" . (0 font-lock-comment-face t))
+
+    ;; KEYWORDS
+    (,miking--keywords-regexp . font-lock-keyword-face)
+
+    ;; TYPE NAMES: Capitalized identifiers (e.g., `List`, `TreeNode`)
+    ("\\_<[A-Z][[:word:]]*\\_>" . font-lock-type-face)
+
+    ;; NAMES right after `let` (optionally `recursive`)
+    (,(concat "\\_<let\\_>\\s-+\\(?:recursive\\s-+\\)?\\(" miking--ident "\\)")
+     (1 font-lock-variable-name-face))
+
+    ;; NAME right after `lam`
+    (,(concat "\\_<lam\\_>\\s-+\\(" miking--ident "\\)")
+     (1 font-lock-variable-name-face))
+    ))
+
+;; ---------- Major mode definition ----------
+;;;###autoload
+(define-derived-mode miking-mode prog-mode "Miking"
+  "A minimal major mode for the Miking programming language."
+  :syntax-table miking-mode-syntax-table
+  (setq-local case-fold-search nil)        ; be strict about case
+  (setq-local font-lock-multiline t)       ; allow multi-line comment regex
+  (setq-local comment-start "--")
+  (setq-local comment-start-skip "--+\\s-*")
+
+  ;; Use our font-lock keywords; keep syntactic fontification for strings.
+  (setq-local font-lock-defaults
+              '(miking-font-lock-keywords
+                nil                          ; KEYWORDS-ONLY? (nil = also do strings/comments syntactically)
+                nil                          ; CASE-FOLD? (nil = use buffer-local case-fold-search)
+                ((?_ . "w"))))               ; treat underscore as word constituent
+  ;; Comment helpers (so M-; uses `--`; block comments still highlighted via font-lock)
+  (setq-local comment-end "")
+  (setq-local comment-use-syntax nil))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.mc\\'" . miking-mode))
+
+(provide 'init-miking)
+;;; init-miking.el ends here
+;;; init-rust.el --- Rust programming configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Provides Rust language support via `rust-mode` and `eglot`.
+;; Syntax highlighting, LSP, auto-formatting, and inline documentation.
+
+;;; Code:
+
+(use-package rust-mode
+  :mode ("\\.rs\\'" . rust-mode)
+  :hook (rust-mode . my/rust-setup))
+
+(defun my/rust-setup ()
+  "Setup rust mode with LSP and formatting."
+  (eglot-ensure)                            ;; Start LSP (eglot + rust-analyzer)
+  (setq indent-tabs-mode nil)              ;; Use spaces
+  (setq rust-format-on-save t))            ;; Format using rustfmt on save
+
+(provide 'init-rust)
+;;; init-rust.el ends here
+;; init-magit-mode.el --- Git support with Magit -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Full Magit integration: Git status, staging, diffs, history, and more.
+;; Provides convenient keybindings and optional GitHub integration via Forge.
+
+;;; Code:
+
+(autoload 'martin-global-mode "init-bindings" nil t)
+(autoload 'martin-mode "init-bindings" nil t)
+
+(use-package magit
+  :defer t
+  :config
+  (define-key magit-file-section-map (kbd "C-j") #'previous-line)
+  
+  (setq magit-refresh-status-buffer t)
+  (setq magit-auto-revert-mode t)
+  
+  (setq magit-save-repository-buffers 'dontask)
+  (setq magit-no-confirm '(stage-all-changes)))
+
+(defun my-magit-diff-file (file)
+  "Run magit-diff on FILE against HEAD."
+  (interactive "fSelect file or directory: ")
+  (magit-diff-dwim (list file)))
+
+(provide 'init-magit-mode)
+;;; init-magit-mode.el ends here
+;;; init-zig.el --- Zig configuration using Eglot
+
+;;; Commentary:
+;; Provides Zig IDE features via eglot and zls.
+;; Includes jump to definition, diagnostics, and formatting on save.
+
+;;; Code:
+
+(use-package zig-mode
+  :mode "\\.zig\\'"
+  :hook ((zig-mode . eglot-ensure)
+         (zig-mode . my/zig-format-on-save)))
+
+;; Formatting on save using zig fmt
+(defun my/zig-format-on-save ()
+  "Format Zig code with `zig fmt` on save."
+  (add-hook 'before-save-hook #'zig-format-buffer nil t))
+
+(provide 'init-zig)
+;;; init-zig.el ends here
+;;; init-javascript.el --- JavaScript setup with eglot + ESLint -*- lexical-binding: t; -*-
+
+;; Ensure eglot runs for JS/TS
+(add-hook 'js-mode-hook 'eglot-ensure)
+(add-hook 'typescript-mode-hook 'eglot-ensure)
+
+;; Enable flymake for diagnostics
+(add-hook 'eglot-managed-mode-hook #'flymake-mode)
+
+;; Auto-format on save
+(defun my/eglot-format-on-save ()
+  "Format buffer before saving when eglot is active."
+  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+(add-hook 'eglot-managed-mode-hook #'my/eglot-format-on-save)
+
+;; Tell eglot to use both tsserver and eslint
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((js-mode typescript-mode)
+                 . ("vscode-eslint-language-server" "--stdio"))))
+
+;; Keybindings: jump to definitions (M-.), back (M-,)
+;; Already provided by xref
+
+(provide 'init-javascript)
+;;; init-javascript.el ends here
+;;; init-dashboard.el --- Dashboard configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Clean, modern Emacs Dashboard setup with banner, icons, items,
+;; navigation buttons, and custom headings.
+
+;;; Code:
+
+(use-package dashboard
+  :ensure t
+  :defer t
+  :hook (after-init . dashboard-setup-startup-hook)
+  :custom
+  (dashboard-center-content t)
+  (dashboard-show-shortcuts t)
+  (dashboard-set-heading-icons nil)
+  (dashboard-set-file-icons nil)
+  (dashboard-set-navigator nil)
+  (dashboard-set-init-info t)
+  (dashboard-banner-logo-title "Heee game is game")
+  (dashboard-startup-banner 'logo)
+  (dashboard-items '((recents   . 10)
+                     (projects  . 5)
+                     (agenda    . 5)
+                     (bookmarks . 5)
+                     (registers . 3))))
+
+
+(provide 'init-dashboard)
+;;; init-dashboard.el ends here
+;;; init-miscellaneous.el --- Miscellaneous editor behavior tweaks -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Small tweaks to improve the user experience:
+;; - Use `y/n` instead of `yes/no` prompts
+;; - Disable lockfile creation
+
+;;; Code:
+
+;; Use y/n instead of yes/no in prompts
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; Don't create lockfiles like .#filename
+(setq create-lockfiles nil)
+
+(provide 'init-miscellaneous)
+;;; init-miscellaneous.el ends here
+;;; init-exec-path.el --- Import shell environment variables -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Use `exec-path-from-shell` to import shell environment variables
+;; when running Emacs in a GUI (macOS, Linux with X11, etc.).
+;; This ensures tools like compilers and language servers work correctly.
+
+;;; Code:
+
+(use-package exec-path-from-shell
+  :config
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "PATH"))
+
+(provide 'init-exec-path)
+;;; init-exec-path.el ends here
+;;; init-electric.el --- Configuration for electric pair mode -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Enable and configure `electric-pair-mode` to insert matching delimiters
+;; like (), [], "", etc. Also disables pairing in unwanted modes like shell
+;; or minibuffer, and adds custom pairing behavior.
+
+;;; Code:
+
+(require 'electric)
+
+;; Enable automatic insertion of matching pairs like (), {}, [], "", etc.
+(electric-pair-mode 1)
+
+;; Disable pairing in modes where it would be annoying, like minibuffer or shell
+(setq electric-pair-inhibit-predicate
+      (lambda (c)
+        (or (char-equal c ?\')                     ; Don’t auto-pair single quotes
+            (minibufferp)                          ; Disable in minibuffer
+            (memq major-mode '(shell-mode eshell-mode)))))  ; Disable in shell modes
+
+;; Prevent breaking a pair when deleting in the middle of one
+(setq electric-pair-preserve-balance t)
+
+;; Allow automatic pairing of additional characters (e.g., < and >)
+(setq electric-pair-text-pairs '((?< . ?>)))
+
+(use-package electric-spacing
+      :ensure t)
+
+;; Do not insert a newline between pairs automatically
+(setq electric-pair-open-newline-between-pairs nil)
+
+(provide 'init-electric)
+;;; init-electric.el ends here
+;;; init-projectile.el --- Fast Projectile setup -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Lean config for Projectile
+;; - Projectile: caching + alien indexing for speed.
+
+;;; Code:
+
+;; ----------------------
+;; Projectile
+;; ----------------------
+
+(use-package projectile
+  :ensure t
+  :demand t
+  :config
+  (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
+  (setq projectile-project-search-path '("~/Projects" "~/.emacs.d" "~/kth"))
+  (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'alien))
+
+(provide 'init-projectile)
+;;; init-projectile.el ends here
+;;; init-scala.el -- Configuration file for the Scala programming language -*- lexical-binding: t; -*-
+;;; Commentary:
+;;; Code:
+
+(use-package scala-mode
+  :interpreter
+  ("scala" . scala-mode)
+  :mode ("\\.scala\\'" . scala-mode)
+  )
+
+(use-package eglot
+  :hook (scala-mode . eglot-ensure))
+
+
+(provide 'init-scala)
+;;; init-scala.el ends here
+;;; init-nasm.el --- NASM assembly support -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Setup for editing NASM assembly files:
+;; - Syntax highlighting with `nasm-mode`
+;; - Automatic use for `.asm` and `.nasm` files
+;; - Readable indentation settings
+
+;;; Code:
+
+(use-package nasm-mode
+  :mode ("\\.\\(asm\\|nasm\\)\\'" . nasm-mode)
+  :hook (nasm-mode . (lambda ()
+                       (setq tab-width 8)
+                       (setq indent-tabs-mode nil))))  ;; Use spaces for alignment
+
+(provide 'init-nasm)
+;;; init-nasm.el ends here
+;;; init-company-mode.el --- Company-mode autocompletion setup -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Configure `company-mode` and `yasnippet` for autocompletion.
+
+;;; Code:
+
+;; Company
+(use-package company
+  :ensure t
+  :defer 1
+  :hook
+  ((prog-mode . company-mode)
+   (text-mode . company-mode))
+  :init
+  (setq company-idle-delay 0.1
+        company-minimum-prefix-length 1
+        company-tooltip-align-annotations t
+        company-show-numbers t
+        company-dabbrev-ignore-case t
+        company-dabbrev-downcase nil)
+  :config
+  (global-company-mode 1))
+
+;; Yasnippet
+(use-package yasnippet
+  :ensure t
+  :defer t
+  :config
+  (yas-global-mode 1))
+
+(use-package yasnippet-snippets
+  :ensure t
+  :after yasnippet)
+
+;; Extra keybindings with company
+(with-eval-after-load 'company
+  ;; Make C-p delete one char even when the popup is active
+  (define-key company-active-map (kbd "C-p")
+    (lambda () (interactive)
+      (company-abort)
+      (call-interactively #'delete-backward-char)))
+
+  ;; Make M-p delete a subword even when the popup is active
+  (define-key company-active-map (kbd "M-p")
+    (lambda () (interactive)
+      (company-abort)
+      (call-interactively #'subword-backward-kill)))
+
+  ;; Alternative variant
+  (define-key company-active-map (kbd "C-S-p")
+    (lambda () (interactive)
+      (company-abort)
+      (call-interactively #'backward-kill-word)))
+
+  ;; Enable yasnippet in company
+  (with-eval-after-load 'yasnippet
+    (defvar company-mode/enable-yas t
+      "Enable yasnippet for all backends.")
+
+    (defun company-mode/backend-with-yas (backend)
+      (if (or (not company-mode/enable-yas)
+              (and (listp backend) (member 'company-yasnippet backend)))
+          backend
+        (append (if (consp backend) backend (list backend))
+                '(:with company-yasnippet))))
+
+    (setq company-backends
+          (mapcar #'company-mode/backend-with-yas company-backends))))
+
+(use-package vertico
+  :ensure t
+  :init (vertico-mode))
+
+
+
+(provide 'init-company-mode)
+;;; init-company-mode.el ends here
+
+;;; init-lisp.el --- Configuration for Lisp programming -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Basic setup for Emacs Lisp development:
+;; - Real-time syntax checking via Flymake
+;; - Live function/variable documentation via Eldoc
+
+;;; Code:
+
+;;; Enable real-time syntax checking with Flymake (built-in)
+(add-hook 'emacs-lisp-mode-hook #'flymake-mode)
+
+;;; Show function signature and doc in minibuffer
+(add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
+
+(provide 'init-lisp)
+;;; init-lisp.el ends here
+;;; init-pdf.el --- PDF configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Minimal setup for viewing and annotating PDFs in Emacs using pdf-tools.
+;; Adds a helper to regenerate appearances for form fields (qpdf required).
+
+;;; Code:
+
+;; Ensure pdf-tools is installed and initialized
+(use-package pdf-tools
+  :defer t
+  :config
+  (pdf-tools-install) ;; Initialize pdf-tools
+  (setq-default pdf-view-display-size 'fit-page))
+ 
+;; Convenience keybindings
+(with-eval-after-load 'pdf-view
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+  (define-key pdf-view-mode-map (kbd "n")   'pdf-view-next-page-command)
+  (define-key pdf-view-mode-map (kbd "p")   'pdf-view-previous-page-command)
+  (define-key pdf-view-mode-map (kbd "g")   'pdf-view-goto-page))
+
+;; Extra: regenerate appearances of filled PDF forms using qpdf
+(defun my/pdf-generate-appearances ()
+  "Regenerate appearances for the current PDF using qpdf, then reload."
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (tmp (make-temp-file "emacs-pdf-" nil ".pdf")))
+    (unless (executable-find "qpdf")
+      (user-error "qpdf not found in PATH"))
+    (call-process "qpdf" nil nil nil file "--generate-appearances" tmp)
+    (copy-file tmp file t) ;; overwrite original
+    (kill-buffer)
+    (find-file file)
+    (message "Regenerated appearances with qpdf")))
+
+(with-eval-after-load 'pdf-view
+  (define-key pdf-view-mode-map (kbd "C-c C-a") #'my/pdf-generate-appearances))
+
+(setq pdf-view-use-scaling t)
+(setq-default pdf-view-display-size 'fit-page)
+
+(add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+
+
+(provide 'init-pdf)
+;;; init-pdf.el ends here
+;;; init-markdown.el --- Markdown editing configuration -*- lexical-binding: t; -*-
+;;; Commentary:
+;; This file configures Emacs for editing Markdown files.
+;; It loads `markdown-mode` and optionally enables preview functionality.
+
+;;; Code:
+
+;; Ensure markdown-mode is available
+(use-package markdown-mode
+  :mode ("\\.md\\'" "\\.markdown\\'")  ;; Associate .md and .markdown files with markdown-mode
+  :init
+  (setq markdown-command "pandoc")     ;; Use pandoc for rendering if installed
+  :config
+  ;; Optional: auto-fill mode for long paragraphs
+  (add-hook 'markdown-mode-hook #'auto-fill-mode)
+
+  ;; Optional: enable visual-line-mode for better text wrapping
+  (add-hook 'markdown-mode-hook #'visual-line-mode)
+
+  ;; Optional: syntax highlighting for code blocks using `markdown-fontify-code-blocks-natively`
+  (setq markdown-fontify-code-blocks-natively t))
+
+;; markdown-preview-mode (easy to use)
+(use-package markdown-preview-mode
+  :ensure t
+  :after markdown-mode
+  :bind (:map markdown-mode-command-map
+              ("p" . markdown-preview-mode)))  ;; Press C-c C-c p to preview
+
+
+(provide 'init-markdown)
+;;; init-markdown.el ends here
+;;; init-multi-cursor.el --- Multi-cursor support -*- lexical-binding: t; -*-
+;; Keywords: editing, cursors
+;; Package-Requires: ((emacs "26.1") (multiple-cursors "1.4.0"))
+
+;;; Commentary:
+
+;; This file sets up multiple-cursors with ergonomic keybindings and
+;; optional region bindings mode for enhanced selection-based usage.
+
+;;; Code:
+
+;; Install with:
+;; M-x package-install RET multiple-cursors RET
+
+(use-package multiple-cursors
+  :ensure t
+  :commands
+  (mc/edit-lines
+   mc/mark-all-like-this
+   mc/mark-next-like-this
+   mc/mark-previous-like-this
+   mc/mark-all-like-this-dwim
+   mc/mark-more-like-this-extended)
+  :init
+  ;; Optional: avoid accidental cursor creep
+  (setq mc/always-repeat-command t)
+  (setq mc/always-run-for-all t)
+  (setq mc/list-file (expand-file-name "mc-lists.el" user-emacs-directory))
+
+(provide 'init-multi-cursor)
+;;; init-multi-cursor.el ends here
+;;; init-ocaml.el --- OCaml language configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; OCaml programming environment using `tuareg-mode` and `eglot` with `ocaml-lsp-server`.
+
+;;; Code:
+
+(use-package tuareg
+  :ensure t
+  :mode ("\\.ml[iylp]?\\'" . tuareg-mode)
+  :init
+  (setq tuareg-mode-map (make-sparse-keymap))  ;; Nuke all keybindings
+  :hook (tuareg-mode . my/ocaml-setup))
+
+(defun my/ocaml-setup ()
+  "Setup OCaml development environment with LSP and formatting."
+  (eglot-ensure)                             ;; Start LSP
+  (setq indent-tabs-mode nil)
+  (setq tuareg-indent-align-with-first-arg t)
+  (setq tuareg-match-patterns-along-line t))
+
+(provide 'init-ocaml)
+;;; init-ocaml.el ends here
+;;; init-haskell.el --- Haskell configuration using Eglot
+
+;;; Commentary:
+;; Provides syntax highlighting, indentation, LSP support via HLS,
+;; and formatting on save.
+
+;;; Code:
+
+(use-package haskell-mode
+  :mode ("\\.hs\\'" . haskell-mode)
+  :hook ((haskell-mode . eglot-ensure)
+         (haskell-mode . my/haskell-format-on-save))
+  :config
+  ;; Indentation defaults
+  (setq haskell-indentation-layout-offset 4
+        haskell-indentation-starter-offset 4
+        haskell-indentation-left-offset 4
+        haskell-indentation-where-pre-offset 2
+        haskell-indentation-where-post-offset 2))
+
+;; Formatting with stylish-haskell or ormolu
+(defun my/haskell-format-on-save ()
+  "Format Haskell code on save using stylish-haskell or ormolu."
+  (when (executable-find "stylish-haskell")
+    (add-hook 'before-save-hook #'haskell-mode-stylish-buffer nil t)))
+
+(provide 'init-haskell)
+;;; init-haskell.el ends here
+;;; init-org-mode.el --- Minimal Org-mode setup for TODO lists  -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Force Org buffers to keep global (and minor-mode) keybindings only.
+
+;;; Code:
+
+;; At the top of init-org-mode.el, before calling it:
+(autoload 'martin/text-setup "init-text" nil t)
+
+(use-package org
+  :ensure t
+  :config
+
+  (setq org-agenda-files '("~/Projects/miking-docgen/docgen.org"
+                           "~/.emacs.d/emacs.org"
+                           "~/kth/kth.org"
+                          ))
+
+  ;; Basic Org setup
+
+  (martin/text-setup)
+  (flyspell-mode 1)
+
+  (setq org-directory "~/org/")
+  (setq org-default-notes-file (concat org-directory "notes.org"))
+  (setq org-todo-keywords '((sequence "TODO" "DONE")))
+  (setq org-startup-folded t)
+  (setq org-log-done 'time))
+
+
+(provide 'init-org-mode)
+;;; init-text.el --- Minimal English spelling for .txt/.org -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Minimal setup for Spelling (Flyspell via Hunspell)
+
+;;; Code:
+
+(use-package flyspell :ensure t)
+
+(defun martin/text-setup ()
+  "Setup for prose buffers (.txt)."
+
+  ;; Spelling
+  (when (executable-find "hunspell")
+    (setq-local ispell-program-name (executable-find "hunspell")
+                ispell-dictionary "en_US")
+    (flyspell-mode 1)))
+
+(add-hook 'text-mode-hook #'martin/text-setup)
+
+(setq flyspell-issue-message-flag nil
+      flyspell-issue-welcome-flag nil)
+
+(provide 'init-text)
+;;; init-text.el ends here
+;;; init-vterm.el -- Summary: config for vterm ;;; -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; - Split terminal to the right (C-c t)
+;; - Open a new vterm buffer (C-c n)
+;; - Override vterm key handling to match my global bindings by sending
+;;   terminal keys where direct buffer editing would fail (read-only).
+
+;;; Code:
+
+;; Open a vterm in a right split
+(defun my/vterm-split-right ()
+  "Split the window to the right and open a new vterm."
+  (interactive)
+  (when (split-window-right)
+    (other-window 1)
+    (vterm)))
+
+; Open a uniquely named vterm buffer
+(defun my/vterm-new-buffer ()
+  "Open a new vterm buffer with a unique name."
+  (interactive)
+  (let ((buffer (generate-new-buffer-name "vterm")))
+    (vterm buffer)))
+
+;; --- Find the labtop screen -----------------
+(defun my/laptop-monitor-attrs ()
+  "Return labtop screen attributes."
+  (seq-find (lambda (attrs)
+              (when-let ((name (alist-get 'name attrs)))
+                (string-match-p "eDP" name)))
+            (display-monitor-attributes-list)))
+
+(defun my/make-frame-on-monitor (attrs &optional params)
+  "Create a new frame positioned on a monitor described by ATTRS.
+
+ATTRS is an alist of monitor attributes, as returned by
+`display-monitor-attributes-list'.  Optional PARAMS is an alist of
+additional frame parameters to merge with the defaults."
+  (let* ((geom (alist-get 'geometry attrs))
+         (left (nth 0 geom))
+         (top  (nth 1 geom)))
+    (make-frame (append `((left . ,left)
+                          (top  . ,top)
+                          (fullscreen . maximized))
+                        params))))
+
+(defun my/open-emacs-on-laptop ()
+  "Open Emacs frame with vterm inside on labtop."
+  (interactive)
+  (let* ((attrs (or (my/laptop-monitor-attrs)
+                    (car (display-monitor-attributes-list))))
+         (frame (my/make-frame-on-monitor attrs '((name . "laptop")))))
+    (select-frame-set-input-focus frame)
+    (when (require 'vterm nil t)
+      (vterm))))
+
+(use-package vterm
+  :ensure t)
+
+(require 'vterm)
+
+(defun my/vterm-find-file ()
+  "Run `find-file` starting from the current vterm directory."
+  (interactive)
+  (when (eq major-mode 'vterm-mode)
+    (let* ((dir (vterm--get-pwd))
+           (default-directory (or dir default-directory)))
+      (call-interactively #'find-file))))
+
+(provide 'init-vterm)
+;;; init-vterm.el ends here
+;;; init-isearch.el --- Minimal tailored isearch behavior  -*- lexical-binding: t; -*-
+
+;;; Commentary:
+
+;;; Code:
+
+;; Exit only if we really have a confirmed match; otherwise abort back to start
+(defun my/isearch-exit-or-abort ()
+  "In isearch: exit when a real match is selected; otherwise abort."
+  (interactive)
+  (if (and isearch-success
+           (> (length isearch-string) 0))
+      (isearch-exit)
+    (isearch-abort)))
+
+(defun my-isearch-exit-and-next-line ()
+  "Quit isearch and move cursor down."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (next-line))
+
+(defun my-isearch-exit-and-previous-line ()
+  "Quit isearch and move cursor up."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (previous-line))
+
+(defun my-isearch-exit-and-forward-char ()
+  "Quit isearch and move cursor right."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (forward-char))
+
+(defun my-isearch-exit-and-backward-char ()
+  "Quit isearch and move cursor left."
+  (interactive)
+  (my/isearch-exit-or-abort)
+  (backward-char))
+
+
+;; Global bindings
+
+(with-eval-after-load 'isearch
+  (let ((map isearch-mode-map))
+    (define-key map (kbd "M-s") nil)
+
+    (global-set-key (kbd "C-s")   #'isearch-forward)
+    (global-set-key (kbd "s-s")   #'isearch-backward)
+
+    (define-key map (kbd "s-s") #'isearch-repeat-backward)
+
+    (define-key map (kbd "RET")       #'my/isearch-exit-or-abort)
+    (define-key map (kbd "<return>")  #'my/isearch-exit-or-abort)
+
+    (define-key map (kbd "C-g")       #'my/isearch-exit-or-abort)
+
+    (define-key isearch-mode-map (kbd "C-k") #'my-isearch-exit-and-next-line)
+    (define-key isearch-mode-map (kbd "C-j") #'my-isearch-exit-and-previous-line)
+    (define-key isearch-mode-map (kbd "C-l") #'my-isearch-exit-and-forward-char)
+    (define-key isearch-mode-map (kbd "C-h") #'my-isearch-exit-and-backward-char)
+
+    (define-key map (kbd "C-p")       #'isearch-del-char)
+
+    (define-key map (kbd "<backspace>") #'isearch-abort)
+    (define-key map (kbd "DEL")         #'isearch-abort)
+  ))
+
+(provide 'init-isearch)
+;;; init-isearch.el ends here
+;;; init-latex.el --- Minimalist LaTeX configuration for Emacs
+;;; Commentary:
+;;; Code:
+
+;; Enable AUCTeX
+(use-package tex
+  :ensure auctex
+  :defer t
+  :hook ((LaTeX-mode . visual-line-mode)
+         (LaTeX-mode . flyspell-mode)
+         (LaTeX-mode . LaTeX-math-mode))
+  :config
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+  (setq TeX-PDF-mode t))
+
+;; Syntax highlighting is built-in for LaTeX-mode
+
+;; Company completion for LaTeX
+(use-package company
+  :ensure t
+  :hook (LaTeX-mode . company-mode))
+
+(use-package company-auctex
+  :ensure t
+  :after (company tex)
+  :config
+  (company-auctex-init))
+
+(provide 'init-latex)
+;;; init-latex.el ends here
+;;; init-c.el --- C/C++ configuration using Eglot
+
+;;; Commentary:
+;; Provides lightweight IDE features for C/C++ using eglot + clangd.
+;; Includes go-to-definition, completion, diagnostics, formatting.
+
+;;; Code:
+
+;; Major modes
+(use-package cc-mode
+  :mode (("\\.c\\'" . c-mode)
+         ("\\.cpp\\'" . c++-mode)
+         ("\\.h\\'" . c++-mode))
+  :config
+  (setq-default c-basic-offset 4
+                tab-width 4
+                indent-tabs-mode nil))
+
+;; Eglot is built-in (since Emacs 29), or install via ELPA for Emacs 28
+(use-package eglot
+  :hook ((c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure)))
+
+;; Formatting with clang-format on save
+(use-package clang-format
+  :hook ((c-mode . my/clang-format-on-save)
+         (c++-mode . my/clang-format-on-save)))
+
+(defun my/clang-format-on-save ()
+  "Format C/C++ buffer on save with clang format."
+  (add-hook 'before-save-hook #'clang-format-buffer nil t))
+
+(provide 'init-c)
+;;; init-c.el ends here
+
+
+;;; init-ui.el --- UI customization settings -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; This file customizes the appearance and interface behavior:
+;; - Disables GUI elements (menu, toolbar, scrollbars)
+;; - Sets fonts, line spacing, cursor, theme
+;; - Enables visual helpers like rainbow delimiters and golden-ratio
+;; - Activates line numbers in programming buffers
+
+;;; Code:
+
+;;; Disable GUI elements
+(menu-bar-mode -1)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+
+;;; Startup appearance
+(setq inhibit-startup-message t)
+(blink-cursor-mode 0)
+(set-cursor-color "#cccccc")
+
+;;; Font and spacing
+(set-face-attribute 'default nil :height 120)
+(setq-default line-spacing 0.4)
+
+;;; Clipboard & selection behavior
+(setq-default
+ x-select-enable-clipboard t
+ x-select-enable-primary t
+ save-interprogram-paste-before-kill t
+ apropos-do-all t
+ mouse-yank-at-point t)
+
+;;; Disable bell sound
+(setq ring-bell-function 'ignore)
+
+(setq use-dialog-box nil)
+
+;;; Theme configuration
+(use-package atom-one-dark-theme
+  :config
+  (load-theme 'atom-one-dark t))
+
+;;; Highlight nested parentheses by color in code
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;;; Show line numbers in programming buffers
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+(require 'time)
+
+(setq display-time-default-load-average nil)
+(setq display-time-day-and-date t display-time-24hr-format t)
+(display-time-mode t)
+
+(use-package all-the-icons)
+
+(provide 'init-ui)
+;;; init-ui.el ends here
+;;; init-make.el --- Minimal Makefile integration for Emacs -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; This file provides a simple integration with GNU Make.
+;; It automatically sets `compile-command` to run `make`
+;; in the nearest directory containing a Makefile, and binds
+;; `C-c C-c` to quickly compile the project.
+;;
+;; Usage:
+;; - Place this file somewhere in your load path.
+;; - Add (require 'init-make) in your init.el.
+;; - When you open a file inside a project with a Makefile,
+;;   `C-c C-c` (or `M-x compile`) will run `make` in the right directory.
+
+;;; Code:
+
+(defun my-set-makefile ()
+  "Search for the nearest Makefile upwards from the current buffer's directory.
+If found, configure `compile-command` so that `M-x compile`
+or `C-c m` runs `make` in the directory containing that Makefile."
+  (interactive)
+  (let ((makefile (locate-dominating-file default-directory "Makefile")))
+    (when makefile
+      (setq-local compile-command (format "make -C %s" makefile)))))
+
+;; Automatically run `my-set-makefile` when opening any file.
+(add-hook 'find-file-hook #'my-set-makefile)
+
+(defun my-compile-make ()
+  "Run make immediately using the current `compile-command`."
+  (interactive)
+  (my-set-makefile) ;; ensure Makefile is detected
+  (compile compile-command)) ;; use it directly, no prompt
+
+
+(defun my-shell-command-in-make-dir ()
+  "Run `shell-command` but with `default-directory` set to the Makefile directory."
+  (interactive)
+  (let ((makefile-dir (locate-dominating-file default-directory "Makefile")))
+    (if makefile-dir
+        (let ((default-directory makefile-dir))
+          (call-interactively 'shell-command))  ;; open prompt at correct dir
+      (call-interactively 'shell-command))))      ;; fallback: normal behavior
+
+
+(defun my-run-last-shell-command-in-make-dir ()
+  "Run the most recent shell command from `shell-command-history`,
+but executed in the directory containing the nearest Makefile."
+  (interactive)
+  (let* ((cmd (car shell-command-history)))
+    (if (not cmd)
+        (message "No shell-command history yet.")
+      (let ((makefile-dir (locate-dominating-file default-directory "Makefile")))
+        (if makefile-dir
+            (let ((default-directory makefile-dir))
+              (shell-command cmd))
+          (shell-command cmd))))))
+
+
+
+(provide 'init-make)
+;;; init-python.el --- Python configuration -*- lexical-binding: t -*-
+;;; Commentary:
+;;; Code:
+
+(use-package python
+  :ensure nil
+  :hook (python-mode . eglot-ensure)
+  :config
+  (setq python-indent-guess-indent-offset-verbose nil)
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook
+                        (lambda ()
+                          (when (eq major-mode 'python-mode)
+                            (let ((p (point)))
+                              (shell-command-on-region
+                               (point-min) (point-max)
+                               "black -q -"
+                               (current-buffer) t "*black-error*" t)
+                              (goto-char p))))
+                        nil t))))
+
+(provide 'init-python)
+;;; init-python.el ends here
+;;; init-dockerfile.el --- Basic Dockerfile setup -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Simple configuration for Dockerfile editing support in Emacs.
+
+;;; Code:
+
+;; Ensure dockerfile-mode is installed
+(use-package dockerfile-mode
+  :ensure t
+  :mode ("Dockerfile\\'" . dockerfile-mode)
+  :config
+  (setq dockerfile-mode-command "docker"))
+
+(provide 'init-dockerfile)
+;;; init-dockerfile.el ends here;;; init-electric.el
+;;; init-java.el --- Simple Java setup with eglot -*- lexical-binding: t; -*-
+
+(setenv "JAVA_HOME" "/usr/lib/jvm/java-21-openjdk")
+
+;; Basic Java setup using eglot
+(use-package eglot
+  :ensure t
+  :hook
+  (java-mode . eglot-ensure)
+  :config
+  ;; Auto-format buffer before saving
+  (add-hook 'java-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'eglot-format-buffer nil t))))
+
+;; Optional: better error highlighting through flymake (enabled by default)
+(use-package flymake
+  :hook (java-mode . flymake-mode))
+
+(provide 'init-java)
+;;; init-java.el ends here
+;;; init-react.el --- Minimal React setup (highlighting, errors, format-on-save)
+
+;;; Commentary:
+;; This config enables:
+;; - Syntax highlighting for JS/TS + JSX/TSX via major modes
+;; - Error highlighting via Flycheck (ESLint/tsc if available)
+;; - Auto-formatting on save via Prettier
+;;
+;; Requirements on your system:
+;;   npm i -g prettier eslint    ; or use project-local binaries
+;;
+;; Load with: (load "/path/to/init-react.el")
+
+;;; Code:
+
+
+(dolist (pkg '(web-mode typescript-mode flycheck prettier-js))
+  (unless (package-installed-p pkg)
+    (package-install pkg)))
+
+;; --- File associations & indentation ----------------------------------------
+;; Use web-mode for React-y files (JSX/TSX). Typescript-mode for plain .ts.
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'"  . web-mode))       ; JSX-friendly .js
+(add-to-list 'auto-mode-alist '("\\.ts\\'"  . typescript-mode))
+
+;; Treat .js files as JSX inside web-mode.
+(setq web-mode-content-types-alist '(("jsx" . "\\.js\\'")))
+
+;; Indentation defaults (2 spaces is common in React projects).
+(setq web-mode-markup-indent-offset 2
+      web-mode-css-indent-offset    2
+      web-mode-code-indent-offset   2)
+(add-hook 'typescript-mode-hook (lambda () (setq-local typescript-indent-level 2)))
+
+;; --- Error highlighting (Flycheck) ------------------------------------------
+;; Enable Flycheck globally; prefer ESLint for JS/TS when present.
+(add-hook 'after-init-hook #'global-flycheck-mode)
+(with-eval-after-load 'flycheck
+  ;; Do not use JSHint; prefer ESLint.
+  (setq-default flycheck-disabled-checkers '(javascript-jshint))
+  ;; Make ESLint run in web-mode buffers (JSX/TSX).
+  (flycheck-add-mode 'javascript-eslint 'web-mode))
+
+;; --- Auto-format on save (Prettier) -----------------------------------------
+(defun my/enable-prettier-on-save ()
+  "Enable Prettier format-on-save if the 'prettier' binary exists."
+  (when (executable-find "prettier")
+    (prettier-js-mode 1)))
+
+(add-hook 'web-mode-hook         #'my/enable-prettier-on-save)
+(add-hook 'typescript-mode-hook  #'my/enable-prettier-on-save)
+(add-hook 'js-mode-hook          #'my/enable-prettier-on-save) ; Just in case
+
+(provide 'init-react)
+;;; init-react.el ends here
+;;; init-bindings.el --- Custom key bindings as an activatable minor mode -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; This merges normal bindings and vterm bindings.
+;; On conflict, dispatch based on whether we are in vterm-mode.
+
+;;; Code:
+
+(eval-when-compile (require 'cl-lib))
+(require 'subword)
+(require 'org)
+(require 'vterm)
+(require 'projectile)
+
+;;;; Helpers & state ---------------------------------------------------------
+
+(defvar-local martin--subword-was-active nil
+  "Whether `subword-mode' was active before enabling `martin-mode'.")
+
+(defun swap-line-up ()
+  "Swap current line with the one above."
+  (interactive)
+  (let ((col (current-column)))
+    (transpose-lines 1)
+    (forward-line -2)
+    (move-to-column col)))
+
+(defun swap-line-down ()
+  "Swap current line with the one below."
+  (interactive)
+  (let ((col (current-column)))
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)
+    (move-to-column col)))
+
+(defun swap-word-left ()
+  "Swap current word with the one on the left."
+  (interactive)
+  (transpose-words -1))
+
+(defun swap-word-right ()
+  "Swap current word with the one on the right."
+  (interactive)
+  (transpose-words 1))
+
+(defun my-scroll-up () (interactive) (scroll-up-line 5))
+(defun my-scroll-down () (interactive) (scroll-down-line 5))
+(defun my/insert-space-no-move () (interactive) (save-excursion (insert " ")))
+(defun my/toggle-comment-on-line ()
+  "Comment or uncomment region, or current line if no region is active."
+  (interactive)
+  (if (use-region-p)
+      ;; Use region
+      (comment-or-uncomment-region (region-beginning) (region-end))
+    ;; Fallback to current line
+    (comment-or-uncomment-region
+     (line-beginning-position)
+     (line-beginning-position 2))))
+
+(defun my/eglot-keybindings ()
+  "Custom keybindings for Eglot-enabled buffers."
+  (local-set-key (kbd "C-<return>") #'xref-find-definitions)
+  (local-set-key (kbd "C-c C-b")    #'xref-go-back))
+(add-hook 'eglot-managed-mode-hook #'my/eglot-keybindings)
+
+;; Helper for vterm binding dispatch
+(defun my/vterm-dispatch (emacs-fn vterm-key &optional shift meta ctrl)
+  "Call VTERM-KEY in vterm/vterm-copy-mode or EMACS-FN otherwise."
+  (lambda ()
+    (interactive)
+    (if (and (derived-mode-p 'vterm-mode)
+             (not (bound-and-true-p vterm-copy-mode)))
+        (vterm-send-key vterm-key shift meta ctrl)
+      (call-interactively emacs-fn))))
+
+(defun my/org-or-nothing (f)
+  "Return a command that calls F if in Org mode, or does nothing otherwise."
+  (lambda ()
+    (interactive)
+    (when (derived-mode-p 'org-mode)
+      (funcall f))))
+
+(defun my-beginning-of-line ()
+  "Move to the first non-whitespace character."
+  (interactive)
+  (let ((pos (point)))
+    (back-to-indentation)
+    (when (= pos (point))
+      (beginning-of-line))))
+
+(defun copy-whole-line ()
+  "Copy the current line to the kill ring without deleting it."
+  (interactive)
+  (kill-ring-save (line-beginning-position)
+                  (line-end-position)))
+
+(declare-function my/vterm-find-file "init-vterm")
+
+(defun my/find-file ()
+  "Call `my/vterm-find-file` if in vterm, else `find-file`."
+  (interactive)
+  (if (derived-mode-p 'vterm-mode)
+      (my/vterm-find-file)
+    (call-interactively #'find-file)))
+
+
+(defvar martin--quote-pairs
+  '((?\" . ?\")
+    (?'  . ?'))
+  "List of quote pairs handled by `martin-delete-pair-smart`.
+Entries should be (OPENING . CLOSING).")
+
+
+(defun martin--escaped-p (pos)
+  "Return non-nil if the character at POS is escaped with a backslash."
+  (when (and (> pos (point-min))
+             (eq (char-before pos) ?\\))
+    ;; Ensure backslash itself is not escaped (i.e., odd number of \)
+    (let ((count 0)
+          (p (1- pos)))
+      (while (and (>= p (point-min))
+                  (eq (char-before (1+ p)) ?\\))
+        (setq count (1+ count))
+        (setq p (1- p)))
+      ;; Odd number of backslashes → escaped
+      (oddp count))))
+
+
+(defun martin--delete-quote-pair-at (pos)
+  "Try to delete quotes around POS.
+Supports escaped quotes. Returns t on success."
+  (when (and (>= pos (point-min)) (< pos (point-max)))
+    (let* ((char (char-after pos))
+           (char-before (char-before pos))
+           (pair-open  (car (assoc char martin--quote-pairs)))
+           (pair-close (cdr (assoc char martin--quote-pairs))))
+      (cond
+       ;; On opening quote (ensure not escaped)
+       ((and pair-open (not (martin--escaped-p pos)))
+        (let ((end (save-excursion
+                     (goto-char (1+ pos))
+                     (catch 'found
+                       (while (search-forward (char-to-string pair-close) nil t)
+                         (unless (martin--escaped-p (point))
+                           (throw 'found (point))))
+                       nil))))
+          (when end
+            ;; remove closing
+            (save-excursion
+              (goto-char (1- end))
+              (delete-char 1))
+            ;; remove opening
+            (delete-char 1)
+            t)))
+
+       ;; On closing quote (ensure not escaped)
+       ((and char-before
+             (setq pair-open (car (rassoc char-before martin--quote-pairs)))
+             (not (martin--escaped-p (1- pos))))
+        (let ((start (save-excursion
+                       (goto-char (1- pos))
+                       (catch 'found
+                         (while (search-backward (char-to-string pair-open) nil t)
+                           (unless (martin--escaped-p (point))
+                             (throw 'found (point))))
+                         nil))))
+          (when start
+            ;; remove opening
+            (save-excursion
+              (goto-char start)
+              (delete-char 1))
+            ;; remove closing
+            (delete-char -1)
+            t)))))))
+
+
+(defun martin--delete-bracket-pair-at (pos)
+  "Try to delete (), [], {}, <> pair at POS. Returns t on success."
+  (when (and (>= pos (point-min)) (< pos (point-max)))
+    (save-excursion
+      (goto-char pos)
+      (cond
+       ;; opening delimiter
+       ((memq (char-after) '(?\( ?\[ ?\{ ?<))
+        (let ((end (scan-lists pos 1 0)))
+          (when end
+            (save-excursion
+              (goto-char (1- end))
+              (delete-char 1))
+            (delete-char 1)
+            t)))
+
+       ;; closing delimiter
+       ((memq (char-before) '(?\) ?\] ?\} ?>))
+        (let ((start (scan-lists pos -1 0)))
+          (when start
+            (save-excursion
+              (goto-char start)
+              (delete-char 1))
+            (delete-char -1)
+            t)))))))
+
+
+(defun martin--delete-pair-at (pos)
+  "Try deleting any pair (quotes or brackets) at POS."
+  (or (martin--delete-bracket-pair-at pos)
+      (martin--delete-quote-pair-at pos)))
+
+
+(defun martin-delete-pair-smart ()
+  "Delete matching pair around point.
+Supports brackets, quotes, escaped quotes, and retries on neighbor chars."
+  (interactive)
+  (let* ((pos (point))
+         ;; Try point → left → right
+         (result (or (martin--delete-pair-at pos)
+                     (martin--delete-pair-at (1- pos))
+                     (martin--delete-pair-at (1+ pos)))))
+    (unless result
+      (message "No matching pair around point."))))
+
+
+;;;; Keymap -----------------------------------------------------------------
+
+(defvar martin-mode-map
+  (let ((map (make-sparse-keymap)))
+
+    ;; --------------------
+    ;; Movements (conflicts handled)
+    ;; --------------------
+    (define-key map (kbd "C-;")
+                (my/vterm-dispatch #'forward-char "<right>"))
+    (define-key map (kbd "C-j")
+                (my/vterm-dispatch #'backward-char "<left>"))
+    (define-key map (kbd "C-k") #'next-line)
+    (define-key map (kbd "C-l") #'previous-line)
+
+    (define-key map (kbd "M-j")
+                (my/vterm-dispatch #'subword-backward "<left>" nil nil t))
+    (define-key map (kbd "M-;")
+                (my/vterm-dispatch #'subword-forward "<right>" nil nil t))
+
+
+    (define-key map (kbd "M-l")
+                (lambda ()
+                  (interactive)
+                  (if (and (minibufferp)
+                           (eq minibuffer-history-variable 'shell-command-history))
+                      (previous-history-element 1)
+                    (funcall (my/vterm-dispatch #'backward-paragraph "<up>")))))
+
+    (define-key map (kbd "M-k")
+                (lambda ()
+                  (interactive)
+                  (if (and (minibufferp)
+                           (eq minibuffer-history-variable 'shell-command-history))
+                      (next-history-element 1)
+                    (funcall (my/vterm-dispatch #'forward-paragraph "<down>")))))
+
+    (define-key map (kbd "C-M-;") #'forward-sexp)
+    (define-key map (kbd "C-M-j") #'backward-sexp)    
+    (define-key map (kbd "M-a") #'my-beginning-of-line)
+
+    ;; Upper / lower
+    (define-key map (kbd "C-u") #'downcase-word)
+    (define-key map (kbd "M-u") #'upcase-word)
+    (define-key map (kbd "C-M-u") #'capitalize-word)
+
+    ;; Zoom
+    (define-key map (kbd "C-=") #'text-scale-increase)
+    (define-key map (kbd "C--") #'text-scale-decrease)
+
+    ;; Saving
+    (define-key map (kbd "C-z") #'save-buffer)
+    (define-key map (kbd "C-x s") #'ignore)
+    (define-key map (kbd "C-x C-s") #'ignore)
+
+    ;; Goto
+    (define-key map (kbd "M-g M-g") #'goto-line)
+    (define-key map (kbd "M-g M-f") #'move-to-column)
+    (define-key map (kbd "M-[") #'beginning-of-buffer)
+    (define-key map (kbd "M-{") #'end-of-buffer)
+
+    
+    (use-package expand-region)
+    (require 'expand-region)
+    (define-key map (kbd "M-SPC") 'er/expand-region)
+    (define-key map (kbd "M-C-SPC") 'er/contract-region)
+
+
+    ;; Compile
+    
+    (require 'init-make)
+    (define-key map (kbd "C-q") #'my-compile-make)
+    (define-key map (kbd "C-v") #'my-shell-command-in-make-dir)
+    (define-key map (kbd "M-v") #'my-run-last-shell-command-in-make-dir)
+
+    ;; Deletion (conflicts handled)
+    (dolist (key '("DEL" "C-DEL" "M-DEL"
+                   "<deletechar>" "<backspace>"
+                   "C-<deletechar>" "M-<deletechar>"
+                   "C-<backspace>"  "M-<backspace>"))
+      (define-key map (kbd key) #'ignore))
+
+    (define-key map (kbd "C-p")
+                (my/vterm-dispatch #'delete-backward-char "<backspace>"))
+    (define-key map (kbd "M-p")
+                (my/vterm-dispatch #'subword-backward-kill "w" nil nil t))
+    (define-key map (kbd "C-S-p")
+                (my/vterm-dispatch #'backward-kill-word "w" nil nil t))
+    (define-key map (kbd "C-'")
+                (my/vterm-dispatch #'kill-line "k" nil nil t))
+    (define-key map (kbd "M-'") #'kill-whole-line)
+    (define-key map (kbd "M-C-'") #'copy-whole-line)
+    
+
+    ;; Caps mapping
+    (define-key map (kbd "<capslock>") #'event-apply-control-modifier)
+
+    ;; Window/frame (conflicts handled)
+    (define-key map (kbd "<return>")
+                (if (> (length (display-monitor-attributes-list)) 1)
+                    #'other-frame
+                  #'other-window))
+    
+    (define-key map (kbd "M-o") #'other-window)
+    (define-key map (kbd "C-`") #'delete-window)
+    (define-key map (kbd "C-2") #'split-window-right)
+    (define-key map (kbd "C-3") #'split-window-below)
+    (define-key map (kbd "C-1") #'delete-other-windows)
+    (define-key map (kbd "M-i") #'delete-other-windows)
+
+    ;; Remove old window bindings
+    (dolist (k '("C-x 0" "C-x 1" "C-x 2" "C-x 3"))
+      (define-key map (kbd k) #'ignore))
+
+    ;; Arrows
+    (define-key map (kbd "<up>")
+                (my/vterm-dispatch #'swap-line-up "<up>" nil nil nil))
+    (define-key map (kbd "<down>")
+                (my/vterm-dispatch #'swap-line-down "<down>" nil nil nil))
+    (define-key map (kbd "<left>")
+                (my/vterm-dispatch #'undo-fu-only-undo "<left>" nil nil nil))
+    (define-key map (kbd "<right>")
+                (my/vterm-dispatch #'undo-fu-only-redo "<right>" nil nil nil))
+
+    ;; Scrolling & buffer nav
+    (define-key map (kbd "C-M-k") #'my-scroll-up)
+    (define-key map (kbd "C-M-l") #'my-scroll-down)
+
+    (define-key map (kbd "C-S-SPC") #'my/insert-space-no-move)
+    (define-key map (kbd "C-,")     #'recenter-top-bottom)
+    (define-key map (kbd "C-c h")   #'help-command)
+    (define-key map (kbd "C-r")     #'query-replace)
+    (define-key map (kbd "M-r")     #'replace-string)
+
+
+    ;; Vterm management
+    (declare-function my/vterm-split-right "init-vterm")
+    (declare-function my/vterm-new-buffer "init-vterm")
+    (declare-function my/open-emacs-on-laptop "init-vterm")
+    (define-key map (kbd "C-c t") #'my/vterm-split-right)
+    (define-key map (kbd "C-c n") #'my/vterm-new-buffer)
+    (define-key map (kbd "C-c C-t") #'my/open-emacs-on-laptop)
+    (define-key map (kbd "C-t") #'vterm-copy-mode)
+
+    (define-key map (kbd "C-f") #'my/find-file)
+    (define-key map (kbd "C-c C-f") #'projectile-find-file)
+
+    (define-key map (kbd "C-b") #'switch-to-buffer)
+    (define-key map (kbd "C-x C-f") #'my/find-file)
+    (define-key map (kbd "C-9") #'rename-file)
+
+    ;; Projectile
+    (define-key map (kbd "s-g") #'projectile-grep)
+    (define-key map (kbd "M-e") #'projectile-switch-project)
+
+    ;; Org
+    (define-key map (kbd "C-n") (my/org-or-nothing #'org-todo))
+    (define-key map (kbd "M-n") (my/org-or-nothing #'org-insert-heading))
+    
+    (define-key map (kbd "M-q") #'org-agenda-list)
+    (define-key map (kbd "M-t") #'org-todo-list)
+
+
+    ;; Magit
+    (define-key map (kbd "C-x C-g") #'magit-status)
+    (global-set-key (kbd "C-c C-s") #'magit-stash)
+
+    ;; Multi-cursor
+    (define-key map (kbd "C-S-k")  #'mc/mark-next-like-this)
+    (define-key map (kbd "C-S-l")  #'mc/mark-previous-like-this)
+
+    (define-key map (kbd "C-:") #'mc/mark-next-like-this)
+    (define-key map (kbd "C-S-j") #'mc/mark-previous-like-this)    
+
+    (define-key map (kbd "M-<left>")  #'mc/mark-all-like-this)
+    (define-key map (kbd "M-<down>")  #'set-rectangular-region-anchor)
+
+    (define-key map (kbd "M-/") #'delete-horizontal-space)
+
+    ;;; Indent
+    (with-eval-after-load 'indent)
+    (define-key map (kbd "C-<tab>") #'indent-rigidly)
+    (define-key indent-rigidly-map (kbd "C-j") #'indent-rigidly-left)
+    (define-key indent-rigidly-map (kbd "C-;") #'indent-rigidly-right)
+
+    (define-key map (kbd "C-c C-d") #'martin-delete-pair-smart)
+
+    ;; Region helpers
+    (dolist (k '("C-x p" "C-x C-p"))
+      (define-key map (kbd k)
+                  (lambda () (interactive)
+                    (execute-kbd-macro (kbd "C-SPC C-a C-p")))))
+
+    ;; Commenting
+    (define-key map (kbd "C-.") #'my/toggle-comment-on-line)
+    map)
+  "Keymap for `martin-mode'.")
+
+
+;;;; Minor modes -------------------------------------------------------------
+(define-minor-mode martin-mode
+  "Toggle personal keybindings in the current buffer."
+  :init-value nil
+  :lighter " ⌨"
+  :keymap martin-mode-map
+  (if martin-mode
+      (subword-mode 1)
+    (subword-mode 0)))
+
+(define-globalized-minor-mode martin-global-mode
+  martin-mode
+  (lambda () (martin-mode 1))
+  :group 'convenience)
+
+(martin-global-mode 1)
+
+(provide 'init-bindings)
+;;; init-bindings.el ends here
