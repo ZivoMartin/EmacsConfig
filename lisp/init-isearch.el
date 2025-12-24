@@ -1,4 +1,4 @@
-;;; init-isearch.el --- Defines all the isearch preferences -*- lexical-bindings: t; -*-
+;;; init-isearch.el --- Defines all the isearch preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

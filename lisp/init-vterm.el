@@ -1,4 +1,5 @@
-;;; init-vterm.el --- Defines all the VTERM preferences -*- lexical-bindings: t; -*-
+;;; init-vterm.el --- Defines all the VTERM preferences -*- lexical-binding
+: t; -*-
 
 ;;; Commentary:
 
@@ -87,38 +88,56 @@ If NAME is nil, use the current buffer name."
         base
       (concat "vterm-" base))))
 
-(defun martin-vterm-new (&optional force-create name)
+(defvar martin-default-vterm nil
+  "Name of the buffer of the default vterm to open.")
+
+(defun martin-vterm-new (&optional force-create not-use-default name)
   "Create a new vterm buffer in the current window.
 If NAME is provided, use it as the base name.
+NOT-USE-DEFAULT should be true if you want to ignore the default value,
+we update it anyway.
 FORCE-CREATE forces vterm to create a new buffer."
   (interactive)
-  (let* ((vterm-buffer-name (martin-vterm-base-name name))
-         (host-name (buffer-name))
-         (buffer-exists (get-buffer vterm-buffer-name)))
+  (let* ((vterm-buffer-name (martin-vterm-base-name name)))
 
-    (if (and (not force-create) buffer-exists)
-        (switch-to-buffer vterm-buffer-name)
-      (vterm (generate-new-buffer-name vterm-buffer-name)))))
+    (setq martin-default-vterm
+          (if (or (or not-use-default force-create) (not martin-default-vterm))
+              vterm-buffer-name martin-default-vterm))
 
-(defun martin-vterm-other-window (&optional force-create name)
+    (if (and (not force-create) (get-buffer martin-default-vterm))
+        (switch-to-buffer martin-default-vterm)
+      (vterm (generate-new-buffer-name martin-default-vterm)))))
+
+(defun martin-vterm-other-window (&optional force-create not-use-default name)
   "Create a new vterm buffer in another window.
 If NAME is provided, use it as the base name.
+NOT-USE-DEFAULT should be true if you want to ignore the default value,
 FORCE-CREATE forces vterm to create a new buffer."
   (interactive)
   (let ((win (split-window-right)))
-    (set-window-buffer win (buffer-name))
+    (set-window-buffer win (current-buffer))
     (other-window 1)
-    (martin-vterm-new force-create name)))
+    (martin-vterm-new force-create not-use-default name)))
 
 (defun martin-vterm-force-new (&optional name)
   "Force the creation of a new vterm buffer with the name NAME on the current buffer."
   (interactive)
-  (martin-vterm-new t name))
+  (martin-vterm-new t nil name))
 
 (defun martin-vterm-force-other-window (&optional name)
   "Force the creation of a new vterm buffer with the name NAME on another window."
   (interactive)
-  (martin-vterm-other-window t name))
+  (martin-vterm-other-window t nil name))
+
+(defun martin-vterm-try-new (&optional name)
+  "Try to open the vterm buffer of the current window with the name NAME, open a new one otherwise."
+  (interactive)
+  (martin-vterm-new nil t name))
+
+(defun martin-vterm-try-other-window (&optional name)
+  "Try to open the vterm buffer of the current window on another window with the name NAME, open a new one otherwise."
+  (interactive)
+  (martin-vterm-other-window nil t name))
 
 (define-minor-mode martin-vterm-override-mode
   "Emulation layer overriding `martin-mode` in vterm buffers."

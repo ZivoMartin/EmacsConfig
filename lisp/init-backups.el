@@ -1,4 +1,4 @@
-;;; init-backups.el --- Defines all the BACKUPS preferences -*- lexical-bindings: t; -*-
+;;; init-backups.el --- Defines all the BACKUPS preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

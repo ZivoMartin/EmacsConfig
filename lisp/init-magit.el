@@ -1,4 +1,4 @@
-;;; init-magit.el --- Defines all the magit preferences -*- lexical-bindings: t; -*-
+;;; init-magit.el --- Defines all the magit preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

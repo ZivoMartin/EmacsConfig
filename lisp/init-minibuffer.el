@@ -1,4 +1,4 @@
-;;; init-minibuffer.el --- Defines all the minibuffer preferences -*- lexical-bindings: t; -*-
+;;; init-minibuffer.el --- Defines all the minibuffer preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

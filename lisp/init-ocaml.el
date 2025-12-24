@@ -1,4 +1,4 @@
-;;; init-ocaml.el --- Defines all the ocaml preferences -*- lexical-bindings: t; -*-
+;;; init-ocaml.el --- Defines all the ocaml preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

@@ -1,4 +1,4 @@
-;;; init-miking.el --- Defines all the miking preferences -*- lexical-bindings: t; -*-
+;;; init-miking.el --- Defines all the miking preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -11,8 +11,6 @@
 
 (require 'mcore-mode)
 (require 'miking-syn-mode)
-
-;; (add-to-list 'auto-mode-alist '("\\.mc\\'" . mcore-ts-mode))
 
 (provide 'init-miking)
 ;;; init-miking.el ends here

@@ -1,4 +1,4 @@
-;;; init-use-package.el --- Configure use-package -*- lexical-bindings: t; -*-
+;;; init-use-package.el --- Configure use-package -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -9,6 +9,8 @@
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("gnu"   . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
 
 (setq use-package-always-ensure t)
 

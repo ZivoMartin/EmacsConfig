@@ -1,4 +1,4 @@
-;;; init-elisp.el --- Minimal emacs lisp config -*- lexical-bindings: t; -*-
+;;; init-elisp.el --- Minimal emacs lisp config -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

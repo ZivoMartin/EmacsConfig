@@ -1,4 +1,4 @@
-;;; init-org.el --- Defines all the org preferences -*- lexical-bindings: t; -*-
+;;; init-org.el --- Defines all the org preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -6,12 +6,11 @@
 
 (use-package org
   :config
-  (setq org-agenda-files '("~/Projects/Fibo/fibo.org"
-                           "~/Projects/miking-docgen/docgen.org"
+  (setq org-agenda-files '("~/Projects/miking-docgen/docgen.org"
+                           "~/Projects/Dake/dake.org"
                            "~/.emacs.d/emacs.org"
                            "~/kth/kth.org"
-                           "~/Random/random.org"
-                           )
+                           "~/Random/random.org")
         )
   (setq org-todo-keywords '((sequence "TODO" "DONE")))
   (setq org-startup-folded 'fold)

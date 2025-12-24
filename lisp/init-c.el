@@ -1,4 +1,4 @@
-;;; init-c.el --- Defines all the c preferences -*- lexical-bindings: t; -*-
+;;; init-c.el --- Defines all the c preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;;; Command to generate a .clang-format file: clang-format -style=llvm -dump-config > .clang-format

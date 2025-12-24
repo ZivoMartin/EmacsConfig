@@ -1,4 +1,4 @@
-;;; init-martin-group.el --- Defines all the martin-group preferences -*- lexical-bindings: t; -*-
+;;; init-martin-group.el --- Defines all the martin-group preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

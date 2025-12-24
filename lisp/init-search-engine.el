@@ -1,4 +1,4 @@
-;;; init-search-engine.el --- Defines all the search-engine preferences -*- lexical-bindings: t; -*-
+;;; init-search-engine.el --- Defines all the search-engine preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

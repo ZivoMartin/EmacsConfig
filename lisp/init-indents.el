@@ -1,4 +1,4 @@
-;;; init-indents.el --- Defines all the indents preferences -*- lexical-bindings: t; -*-
+;;; init-indents.el --- Defines all the indents preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

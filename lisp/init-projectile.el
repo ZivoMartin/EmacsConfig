@@ -1,4 +1,4 @@
-;;; init-projectile.el --- Defines all the projectile preferences -*- lexical-bindings: t; -*-
+;;; init-projectile.el --- Defines all the projectile preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

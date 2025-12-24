@@ -1,4 +1,4 @@
-;;; init-general-settings.el --- Defines all the general settings, basically general variables. -*- lexical-bindings: t; -*-
+;;; init-general-settings.el --- Defines all the general settings, basically general variables. -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

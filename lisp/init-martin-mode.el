@@ -1,4 +1,4 @@
-;;; init-martin-mode.el --- Definition of the keybindings -*- lexical-bindings: t; -*-
+;;; init-martin-mode.el --- Definition of the keybinding -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -14,6 +14,8 @@
 (require 'init-expand-region)
 (require 'init-org)
 (require 'init-yasnippet)
+(require 'init-dark-themes)
+(require 'init-light-themes)
 
 (makunbound 'martin-mode-keymap)
 (defvar martin-mode-keymap
@@ -66,8 +68,6 @@
     (keymap-set map "M-'" 'kill-whole-line)
     
     (keymap-set map "M-/" 'delete-horizontal-space)
-    
-    (keymap-set map "C-v" 'erase-buffer)
     (keymap-set map "C-c C-d" 'martin-delete-pair-smart)
 
     ;; Files
@@ -91,10 +91,6 @@
     (keymap-set map "M-SPC" 'er/expand-region)
     (keymap-set map "C-M-SPC" 'er/contract-region)
 
-
-    ;; (keymap-set map "<up>" 'swap-line-up)
-    ;; (keymap-set map "<down>" 'swap-line-down)
-
     ;; Copying
 
     (keymap-set map "C-M-'" 'martin-copy-line)
@@ -115,7 +111,16 @@
     (keymap-set map "M-r" 'replace-string)
     (keymap-set map "C-." 'comment-line)
     (keymap-set map "C-z" 'save-buffer)
+    (keymap-set map "M-c" 'martin-swap-line-up)
+    (keymap-set map "C-M-c" 'martin-swap-line-down)
+
+    ;; Window resize
     
+    (keymap-set map "<left>" 'shrink-window-horizontally)
+    (keymap-set map "<right>" 'enlarge-window-horizontally)
+    (keymap-set map "<up>" 'shrink-window)
+    (keymap-set map "<down>" 'enlarge-window)
+
     ;; Zooming
     
     (keymap-set map "C-=" 'text-scale-increase)
@@ -138,6 +143,9 @@
     (keymap-set map  "M-<down>" 'set-rectangular-region-anchor)
 
     ;; Vterm
+    (keymap-set map "C-c M-t" 'martin-vterm-try-other-window)
+    (keymap-set map "C-c M-n" 'martin-vterm-try-new)
+
     (keymap-set map "C-c t" 'martin-vterm-force-other-window)
     (keymap-set map "C-c n" 'martin-vterm-force-new)
     
@@ -159,18 +167,28 @@
 
     ;; Search
 
+    (keymap-set map "M-m" 'xref-find-definitions)
     (keymap-set map "C-s" 'isearch-forward)
     (keymap-set map "M-s" 'isearch-backward)
 
     ;; Yasnippet
 
     (keymap-set map "<return>" 'yas-expand)
+
+    ;; Make
+
+    (keymap-set map "C-q" 'my-compile-make)
+
+    ;; UI
+
+    (keymap-set map "M-=" 'martin-load-dark-theme)
+    (keymap-set map "C-M-=" 'martin-load-light-theme)
     
     map)
-  "The keymap containing all my keybindings.")
+  "The keymap containing all my keybinding.")
 
 (define-minor-mode martin-mode
-  "Martin mode defines all the keybindings using `martin-mode-keymap`."
+  "Martin mode defines all the keybinding using `martin-mode-keymap`."
   :global t
   :keymap martin-mode-keymap
   :group 'martin)

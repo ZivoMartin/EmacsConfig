@@ -1,4 +1,4 @@
-;;; init-dashboard.el --- Defines all the dashboard preferences -*- lexical-bindings: t; -*-
+;;; init-dashboard.el --- Defines all the dashboard preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

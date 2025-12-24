@@ -1,4 +1,4 @@
-;;; init-javascript.el --- Defines all the javascript preferences -*- lexical-bindings: t; -*-
+;;; init-javascript.el --- Defines all the javascript preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

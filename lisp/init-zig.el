@@ -1,4 +1,4 @@
-;;; init-zig.el --- Minimal emacs zig config -*- lexical-bindings: t; -*-
+;;; init-zig.el --- Minimal emacs zig config -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

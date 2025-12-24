@@ -86,9 +86,24 @@
   (interactive)
   (other-window -1))
 
-(defun martin-beginning-of-line ()
-  "Return at the beginning of the line, but on the last trimming space."
-  )
+(defun martin-swap-line-up ()
+  "Swap current line with the one above."
+  (interactive)
+  (let ((col (current-column)))
+    (transpose-lines 1)
+    (forward-line -2)
+    (move-to-column col)))
+
+(defun martin-swap-line-down ()
+  "Swap current line with the one below."
+  (interactive)
+  (let ((col (current-column)))
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)
+    (move-to-column col)))
+
+
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

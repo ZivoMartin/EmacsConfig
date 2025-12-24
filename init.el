@@ -31,10 +31,13 @@
 (require 'init-pdf)
 (require 'init-search-engine)
 (require 'init-expand-region)
+(require 'init-orderless)
 
 ;; Emacs customisation
 
 (require 'init-ui)
+(require 'init-dark-themes)
+(require 'init-light-themes)
 (require 'init-backups)
 (require 'init-indents)
 
@@ -44,15 +47,10 @@
 (require 'init-nasm)
 (require 'init-rust)
 (require 'init-ocaml)
-;; (require 'init-java)
-;; (require 'init-javascript)
-;; (require 'init-react)
 (require 'init-c)
 (require 'init-zig)
-;; (require 'init-haskell)
 (require 'init-miking)
-;; (require 'init-markdown)
-;; (require 'init-latex)
+(require 'init-markdown)
 (require 'init-make)
 (require 'init-dockerfile)
 

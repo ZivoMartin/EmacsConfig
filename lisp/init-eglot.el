@@ -1,4 +1,4 @@
-;;; init-eglot.el --- Install eglot -*- lexical-bindings: t; -*-
+;;; init-eglot.el --- Install eglot -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

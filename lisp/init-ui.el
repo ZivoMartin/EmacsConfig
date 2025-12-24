@@ -1,8 +1,10 @@
-;;; init-ui.el --- Defines all the UI preferences -*- lexical-bindings: t; -*-
+;;; init-ui.el --- Defines all the UI preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'init-dark-themes)
 
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -10,16 +12,12 @@
 (setq inhibit-startup-message t)
 
 (blink-cursor-mode 0)
-(set-cursor-color "#ccccad")
-
-(use-package atom-one-dark-theme
-  :config
-  (load-theme 'atom-one-dark t))
+(set-cursor-color "#caccad")
 
 (setq-default line-spacing 0.4)
 (setq-default apropos-do-all t)
 
-(set-face-attribute 'default nil :height 180)
+(set-face-attribute 'default nil :height 160)
 
 (setq split-height-threshold 160)
 (setq split-width-threshold 100)
@@ -28,6 +26,8 @@
 (column-number-mode 1)
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+(load-theme 'atom-one-dark t)
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

@@ -1,4 +1,4 @@
-;;; init-expand-region.el --- Defines all the expand-region preferences -*- lexical-bindings: t; -*-
+;;; init-expand-region.el --- Defines all the expand-region preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

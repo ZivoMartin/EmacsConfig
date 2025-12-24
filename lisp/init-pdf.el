@@ -1,4 +1,4 @@
-;;; init-pdf.el --- Defines all the pdf preferences -*- lexical-bindings: t; -*-
+;;; init-pdf.el --- Defines all the pdf preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

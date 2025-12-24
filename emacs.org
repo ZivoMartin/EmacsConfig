@@ -1,14 +1,13 @@
 * DONE Configure vterm copy mode
 * TODO Configure vterm-find-file (should work in both copy-mode and vterm-mode)
 * DONE Allow C-l/k to get next/previous search in mini-buffer
-* TODO Implement all the commented files in init.el
-* TODO Compile command on C-q
+* DONE Implement all the commented files in init.el
+* DONE Compile command on C-q
 * TODO Would be great to have a command copying the output of the last command in vterm
-* TODO Uncomment the commented parts in martin-mode once we have internet connection to download required packages
+* DONE Uncomment the commented parts in martin-mode once we have internet connection to download required packages
 * TODO Look for a keybind to confirm the replaced string in string replace
 * TODO Close and remove from fs keybind
-* TODO Add a plugin to setup windows size
-* TODO Being able to interact with the running processes (especially killing them by name easily)
+* DONE Add a plugin to setup windows size
 * DONE Allow alt-f4 from the laptop
 * TODO Impl open-thing-at-point
 * DONE Remove the killing process confirmation when quiting emacs

@@ -1,4 +1,4 @@
-;;; init-yasnippet.el --- Defines all the yasnippet preferences -*- lexical-bindings: t; -*-
+;;; init-yasnippet.el --- Defines all the yasnippet preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

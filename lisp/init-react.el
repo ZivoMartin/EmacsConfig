@@ -1,4 +1,4 @@
-;;; init-react.el --- Defines all the react preferences -*- lexical-bindings: t; -*-
+;;; init-react.el --- Defines all the react preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

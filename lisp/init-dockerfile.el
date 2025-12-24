@@ -1,4 +1,4 @@
-;;; init-dockerfile.el --- Defines all the dockerfile preferences -*- lexical-bindings: t; -*-
+;;; init-dockerfile.el --- Defines all the dockerfile preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

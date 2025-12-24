@@ -1,4 +1,4 @@
-;;; init-company.el --- Defines all the company preferences -*- lexical-bindings: t; -*-
+;;; init-company.el --- Defines all the company preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -8,6 +8,7 @@
   :demand t
   :config
   (global-company-mode 1)
+  (setq company-backends '(company-capf))
   (let ((map company-active-map))
     (keymap-set map "C-p" nil)
     (keymap-set map "M-p" nil)

@@ -1,4 +1,4 @@
-;;; init-multi-cursor.el --- Defines all the multi-cursor preferences -*- lexical-bindings: t; -*-
+;;; init-multi-cursor.el --- Defines all the multi-cursor preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

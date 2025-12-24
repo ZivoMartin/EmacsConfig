@@ -1,4 +1,4 @@
-;;; init-electric.el --- Defines all the electric preferences -*- lexical-bindings: t; -*-
+;;; init-electric.el --- Defines all the electric preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

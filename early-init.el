@@ -1,4 +1,4 @@
-;;; early-init.el --- Simply extends the load-path with the lisp folder -*- lexical-bindings: t; -*-
+;;; early-init.el --- Simply extends the load-path with the lisp folder -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

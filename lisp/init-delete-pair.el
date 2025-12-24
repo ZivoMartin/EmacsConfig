@@ -1,4 +1,4 @@
-;;; init-delete-pair.el --- Small package to delete matching parenthesis/quotes... -*- lexical-bindings: t; -*-
+;;; init-delete-pair.el --- Small package to delete matching parenthesis/quotes... -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

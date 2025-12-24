@@ -1,4 +1,4 @@
-;;; init-rainbow-delimiters.el --- Defines all the rainbow-delimiters preferences -*- lexical-bindings: t; -*-
+;;; init-rainbow-delimiters.el --- Defines all the rainbow-delimiters preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

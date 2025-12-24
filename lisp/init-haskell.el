@@ -1,4 +1,4 @@
-;;; init-haskell.el --- Defines all the haskell preferences -*- lexical-bindings: t; -*-
+;;; init-haskell.el --- Defines all the haskell preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
