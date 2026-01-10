@@ -53,6 +53,7 @@
 (require 'init-markdown)
 (require 'init-make)
 (require 'init-dockerfile)
+(require 'init-ansi)
 
 (message "Load has been successfull.")
 

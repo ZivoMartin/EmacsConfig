@@ -16,6 +16,7 @@
 (require 'init-yasnippet)
 (require 'init-dark-themes)
 (require 'init-light-themes)
+(require 'init-ansi)
 
 (makunbound 'martin-mode-keymap)
 (defvar martin-mode-keymap
@@ -72,11 +73,10 @@
 
     ;; Files
 
-    (keymap-set map "C-f" 'find-file)
+    (keymap-set map "C-f" 'martin-vterm-find-file)
     (keymap-set map "C-b" 'switch-to-buffer)
 
     ;; Windows managment
-
     (keymap-set map "M-o" 'other-window)
     (keymap-set map "C-M-o" 'martin-previous-window)
     (keymap-set map "C-0" 'delete-window)
@@ -94,7 +94,9 @@
     ;; Copying
 
     (keymap-set map "C-M-'" 'martin-copy-line)
+    (keymap-set map "C-c C-'" 'martin-copy-line-above)
     (keymap-set map "M-v" 'martin-copy-buffer)
+    (keymap-set map "C-c C-v" 'martin-vterm-copy-output)
 
     ;; Down and Up cases
     
@@ -135,9 +137,9 @@
 
     ;; Multi Cursors
 
+    (keymap-set map  "C-:" 'set-rectangular-region-anchor)
     (keymap-set map  "C-S-k" 'mc/mark-next-like-this)
     (keymap-set map  "C-S-l" 'mc/mark-previous-like-this)
-    (keymap-set map  "C-:" 'mc/mark-next-like-this)
     (keymap-set map  "C-S-j" 'mc/mark-previous-like-this)
     (keymap-set map  "M-<left>" 'mc/mark-all-like-this)
     (keymap-set map  "M-<down>" 'set-rectangular-region-anchor)
@@ -151,7 +153,7 @@
     
     (keymap-set map "C-c C-t" 'martin-vterm-other-window)
     (keymap-set map "C-c C-n" 'martin-vterm-new)
-    (keymap-set map "C-t" 'martin-vterm-copy-mode)
+    (keymap-set map "C-t" 'martin-vterm-copy-mode-or-insert)
 
     ;; Magit
     
@@ -183,7 +185,8 @@
 
     (keymap-set map "M-=" 'martin-load-dark-theme)
     (keymap-set map "C-M-=" 'martin-load-light-theme)
-    
+    (keymap-set map "M-+" 'martin-ansi-colorize-buffer)
+
     map)
   "The keymap containing all my keybinding.")
 

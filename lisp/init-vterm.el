@@ -1,5 +1,4 @@
-;;; init-vterm.el --- Defines all the VTERM preferences -*- lexical-binding
-: t; -*-
+;;; init-vterm.el --- Defines all the VTERM preferences -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -38,6 +37,9 @@ FLAGS can include :shift, :meta, :ctrl."
 (martin-vterm-send-key martin-vterm-control-right "<right>" :ctrl)
 (martin-vterm-send-key martin-vterm-control-left "<left>" :ctrl)
 
+(martin-vterm-send-key martin-vterm-delete-line "k" :ctrl)
+(martin-vterm-send-key martin-vterm-delete-line "u" :ctrl)
+
 (martin-vterm-send-key martin-vterm-interrupt "c" :ctrl)
 (martin-vterm-send-key martin-vterm-clear "l" :ctrl)
 
@@ -46,6 +48,9 @@ FLAGS can include :shift, :meta, :ctrl."
 
 (use-package vterm
   :load-path vterm-path)
+
+(with-eval-after-load 'vterm
+  (set-face-attribute 'default nil :height 170))
 
 (defvar martin-vterm-override-mode-map
   (let ((map (make-sparse-keymap)))
@@ -65,6 +70,10 @@ FLAGS can include :shift, :meta, :ctrl."
     (keymap-set map "M-k" #'martin-vterm-control-down)
     (keymap-set map "M-j" #'martin-vterm-control-left)
 
+    (keymap-set map "C-'" #'martin-vterm-delete-line)
+    (keymap-set map "M-'" #'martin-vterm-delete-whole-line)
+
+
     (keymap-set map "C-c C-c" #'martin-vterm-interrupt)
     (keymap-set map "C-v" #'martin-vterm-clear)
 
@@ -74,11 +83,13 @@ FLAGS can include :shift, :meta, :ctrl."
     map)
   "Keymap for `martin-vterm-override-mode`.")
 
-(defun martin-vterm-copy-mode ()
-  "Toggle vterm copy mode if in a vterm buffer."
+(defun martin-vterm-copy-mode-or-insert ()
+  "Toggle vterm copy mode if in a vterm buffer.
+Insert 4 spaces otherwise"
   (interactive)
-  (when (derived-mode-p 'vterm-mode)
-    (vterm-copy-mode 'toggle)))
+  (if (derived-mode-p 'vterm-mode)
+      (vterm-copy-mode 'toggle)
+    (insert "    ")))
 
 (defun martin-vterm-base-name (&optional name)
   "Return the base (non-starred) vterm name.
@@ -151,6 +162,7 @@ FORCE-CREATE forces vterm to create a new buffer."
 
 (defun martin--vterm-enter ()
   "Enable vterm override when entering a vterm buffer."
+  (face-remap-add-relative 'default :height 120)
   (unless vterm-copy-mode
     (martin-vterm-override-mode 1)))
 
@@ -167,6 +179,61 @@ FORCE-CREATE forces vterm to create a new buffer."
                 emulation-mode-map-alists)
   (push 'martin-vterm-override--emulation-alist
         emulation-mode-map-alists))
+
+(defvar martin-vterm-prompt-regexp "➜"
+  "Regexp matching the vterm prompt.")
+
+(defun martin-vterm-get-output ()
+  "Return the output between the last two prompt, excluding the command."
+  (save-excursion
+    (let (prompt2 prompt1 output-start output-end)
+
+      (goto-char (point-max))
+      (unless (re-search-backward martin-vterm-prompt-regexp nil t)
+        (error "No prompt found"))
+      (setq prompt2 (point))
+
+      (unless (re-search-backward martin-vterm-prompt-regexp nil t)
+        (error "Only one prompt found"))
+      (setq prompt1 (point))
+
+      (goto-char prompt1)
+      (setq output-start (1+ (line-end-position)))
+
+      (setq output-end prompt2)
+
+      (buffer-substring-no-properties output-start output-end))))
+
+(defun martin-vterm-copy-output ()
+  "Copy output between the last two prompt, excluding the command."
+  (interactive)
+  (save-excursion
+    (let ((text (martin-vterm-get-output)))
+      (kill-new text)
+      (message "Last command output copied"))))
+
+;; This is bad but it works on my machine 100% of the time, so no need of changing
+;; it for now.
+(defun martin-vterm-pwd ()
+  "Manually execute pwd on the current vterm buffer and return the output."
+   (interactive)
+  (let ((start (point-max)))
+    (vterm-send-string "pwd")
+    (vterm-send-return)
+    (let ((output (martin-vterm-get-output)))
+      (aset output (1- (length output)) ?/)
+      output)))
+
+(defun martin-vterm-find-file ()
+  "If in a vterm buffer, call find file from the vterm position.
+Otherwise call the regular find file."
+  (interactive)
+  (if (string-prefix-p "vterm" (buffer-name))
+
+      (let ((default-directory (martin-vterm-pwd)))
+        (call-interactively #'find-file))
+
+      (call-interactively #'find-file)))
 
 (provide 'init-vterm)
 ;;; init-vterm.el ends here

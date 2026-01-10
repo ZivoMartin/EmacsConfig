@@ -5,6 +5,7 @@
 ;;; Code:
 
 (use-package orderless
+  :defer t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion))))

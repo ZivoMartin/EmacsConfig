@@ -13,7 +13,6 @@
   (setq dashboard-center-content t)
   (setq dashboard-vertically-center-content t)
   (setq dashboard-items '((projects  . 5)
-                          (agenda    . 5)
                           (registers . 5)))
   (setq dashboard-startupify-list '(dashboard-insert-banner
                                     dashboard-insert-newline

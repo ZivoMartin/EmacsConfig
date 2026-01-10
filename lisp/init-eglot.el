@@ -6,7 +6,9 @@
 
 (require 'init-use-package)
 
-(use-package eglot)
+(use-package eglot
+  :defer t
+  :commands eglot-ensure)
 
 (provide 'init-eglot)
 ;;; init-eglot.el ends here

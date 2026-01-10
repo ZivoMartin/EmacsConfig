@@ -13,7 +13,7 @@ or `C-c m` runs `make` in the directory containing that Makefile."
     (when makefile
       (setq-local compile-command (format "make -C %s" makefile)))))
 
-(add-hook 'find-file-hook #'my-set-makefile)
+(add-hook 'prog-mode-hook #'my-set-makefile)
 
 (defun my-compile-make ()
   "Run make immediately using the current `compile-command`."

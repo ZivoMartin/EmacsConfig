@@ -4,16 +4,10 @@
 
 ;;; Code:
 
-(use-package ef-themes
-  :defer t)
-
 (use-package doom-themes
   :defer t)
 
 (use-package solarized-theme
-  :defer t)
-
-(use-package spacemacs-theme
   :defer t)
 
 (use-package faff-theme
@@ -21,24 +15,11 @@
 
 
 (defvar martin-light-theme-list
-  '(
-    ef-light
-    ef-day
-    ef-spring
-    ef-summer
-    ef-arbutus
-    ef-reverie
-
-    doom-ayu-light
+  '(doom-ayu-light
     doom-acario-light
     doom-nord-light
-
     solarized-light
-
-    spacemacs-light
-
-    faff
-    )
+    faff)
   "List of my favorite light themes.")
 
 

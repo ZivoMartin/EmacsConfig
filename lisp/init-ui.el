@@ -14,10 +14,10 @@
 (blink-cursor-mode 0)
 (set-cursor-color "#caccad")
 
+(set-face-attribute 'default nil :height 170)
+
 (setq-default line-spacing 0.4)
 (setq-default apropos-do-all t)
-
-(set-face-attribute 'default nil :height 160)
 
 (setq split-height-threshold 160)
 (setq split-width-threshold 100)
@@ -27,7 +27,7 @@
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-(load-theme 'atom-one-dark t)
+(load-theme 'dracula t)
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

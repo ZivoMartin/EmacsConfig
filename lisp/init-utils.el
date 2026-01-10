@@ -55,6 +55,20 @@
       (message "Copied!")
       (kill-ring-save (car bounds) (cdr bounds)))))
 
+(defun martin-copy-line-above ()
+  "Copy the whole line the cursor is currently on and insert it on the previous line."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point 'line)))
+    (when bounds
+      (let ((line (buffer-substring (car bounds) (cdr bounds))))
+        (save-excursion
+          (goto-char (car bounds))
+          (forward-line -1)
+          (end-of-line)
+          (newline)
+          (insert line)
+          (kill-whole-line))))))
+
 (defun martin-copy-buffer ()
   "Copy the entire contents of the current buffer."
   (interactive)
