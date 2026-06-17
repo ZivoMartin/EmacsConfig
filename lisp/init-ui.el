@@ -22,6 +22,7 @@
 (setq split-height-threshold 160)
 (setq split-width-threshold 100)
 
+(setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
 (column-number-mode 1)
 

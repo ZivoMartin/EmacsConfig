@@ -5,6 +5,9 @@
 
 ;;; Code:
 
+(use-package eglot
+  :hook ((c-mode c++-mode) . eglot-ensure))
+
 (use-package clang-format
   :defer t
   :commands (clang-format-buffer)
@@ -22,11 +25,7 @@
         ("\\.hpp\\'" . c++-mode)
         ("\\.h\\'" . c-mode))
   :hook ((c-mode . eglot-ensure)
-         (c++-mode . eglot-ensure)
-         (c-mode . clang-format-on-save-mode)
-         (c++-mode . clang-format-on-save-mode)
-         (c-mode . martin-clang-format-on-save)
-         (c++-mode . martin-clang-format-on-save)))
+         (c++-mode . eglot-ensure)))
 
 
 (provide 'init-c)

@@ -74,7 +74,8 @@ FLAGS can include :shift, :meta, :ctrl."
     (keymap-set map "M-'" #'martin-vterm-delete-whole-line)
 
 
-    (keymap-set map "C-c C-c" #'martin-vterm-interrupt)
+    (keymap-set map "C-n" #'martin-vterm-interrupt)
+    (keymap-set map "C-c C-c" #'nil)
     (keymap-set map "C-v" #'martin-vterm-clear)
 
     (keymap-set map "C-a" #'martin-vterm-beginning-of-line)
@@ -163,6 +164,7 @@ FORCE-CREATE forces vterm to create a new buffer."
 (defun martin--vterm-enter ()
   "Enable vterm override when entering a vterm buffer."
   (face-remap-add-relative 'default :height 120)
+  (display-line-numbers-mode 0)
   (unless vterm-copy-mode
     (martin-vterm-override-mode 1)))
 
@@ -212,14 +214,15 @@ FORCE-CREATE forces vterm to create a new buffer."
       (kill-new text)
       (message "Last command output copied"))))
 
-;; This is bad but it works on my machine 100% of the time, so no need of changing
-;; it for now.
+;; This is shitty as hell, but well, it works on my machine 100% of the time
+;; so game is game.
 (defun martin-vterm-pwd ()
   "Manually execute pwd on the current vterm buffer and return the output."
    (interactive)
   (let ((start (point-max)))
     (vterm-send-string "pwd")
     (vterm-send-return)
+    (sleep-for 0.5)
     (let ((output (martin-vterm-get-output)))
       (aset output (1- (length output)) ?/)
       output)))
@@ -229,7 +232,7 @@ FORCE-CREATE forces vterm to create a new buffer."
 Otherwise call the regular find file."
   (interactive)
   (if (string-prefix-p "vterm" (buffer-name))
-
+      
       (let ((default-directory (martin-vterm-pwd)))
         (call-interactively #'find-file))
 

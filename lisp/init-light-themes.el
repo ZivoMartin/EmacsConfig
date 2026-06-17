@@ -22,12 +22,6 @@
     faff)
   "List of my favorite light themes.")
 
-
-(defvar martin-light-theme-list
-  '()
-  "List of my favorite light-themes.")
-
-
 (defun martin-load-light-theme (theme)
   "Disable active light-themes and load THEME."
   (interactive

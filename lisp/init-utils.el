@@ -118,6 +118,42 @@
     (move-to-column col)))
 
 
+(defun martin-open-random-tmp-file ()
+  "Open a new temporary file in /tmp with a random name."
+  (interactive)
+  (let ((file (make-temp-file "/tmp/emacs-")))
+    (find-file file)))
+
+(defun martin-insert-arrow ()
+  "Insert ->."
+  (interactive)
+  (insert "->"))
+
+(defun martin-goto-line (n)
+  "Forward N lines."
+  (interactive
+   (list (read-number "Forward to line: ")))
+  (forward-line n))
+
+(defun martin-goto-previous-line (n)
+  "Backward N lines."
+  (interactive
+   (list (read-number "Forward to line: ")))
+  (forward-line (- n)))
+
+
+(defun martin-xref-find-definitions ()
+  "Open the xref definition in a window on the right, reusing it if it exists."
+  (interactive)
+  (let ((pos (point))
+         (right-window (window-in-direction 'right)))
+    (if right-window
+        (select-window right-window)
+      (progn
+        (split-window-right)
+        (other-window 1)))
+    (goto-char pos)
+    (xref-find-definitions pos)))
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

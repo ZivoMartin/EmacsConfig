@@ -47,6 +47,9 @@
     (keymap-set map "M-g M-f" 'move-to-column)
     (keymap-set map "M-[" 'beginning-of-buffer)
     (keymap-set map "M-{" 'end-of-buffer)
+    (keymap-set map "C-c g" 'martin-goto-previous-line)
+    (keymap-set map "C-c C-g" 'martin-goto-line)
+    
 
     ;; Scrolling
 
@@ -73,12 +76,12 @@
 
     ;; Files
 
-    (keymap-set map "C-f" 'martin-vterm-find-file)
+    (keymap-set map "C-f" 'find-file)
     (keymap-set map "C-b" 'switch-to-buffer)
+    (keymap-set map "C-c C-b" 'martin-open-random-tmp-file)
 
     ;; Windows managment
     (keymap-set map "M-o" 'other-window)
-    (keymap-set map "C-M-o" 'martin-previous-window)
     (keymap-set map "C-0" 'delete-window)
     (keymap-set map "C-1" 'delete-other-windows)
     (keymap-set map "M-i" 'delete-other-windows)
@@ -104,8 +107,9 @@
     (keymap-set map "M-u" 'martin-upcase-whole-word)
     (keymap-set map "C-M-u" 'martin-capitalize-whole-word)
 
-    ;; File editting
-
+    ;; File editing
+    
+    (keymap-set map "M-_" 'martin-insert-arrow)
     (keymap-set map "C-<tab>" 'indent-rigidly)
     (keymap-set map "C-M-<tab>" 'martin-force-tab-insert)
     (keymap-set map "M-S-SPC" 'martin-insert-space)
@@ -115,6 +119,7 @@
     (keymap-set map "C-z" 'save-buffer)
     (keymap-set map "M-c" 'martin-swap-line-up)
     (keymap-set map "C-M-c" 'martin-swap-line-down)
+    (keymap-set map "C-t" 'martin-vterm-copy-mode-or-insert)
 
     ;; Window resize
     
@@ -144,7 +149,7 @@
     (keymap-set map  "M-<left>" 'mc/mark-all-like-this)
     (keymap-set map  "M-<down>" 'set-rectangular-region-anchor)
 
-    ;; Vterm
+    ;; vterm
     (keymap-set map "C-c M-t" 'martin-vterm-try-other-window)
     (keymap-set map "C-c M-n" 'martin-vterm-try-new)
 
@@ -153,7 +158,6 @@
     
     (keymap-set map "C-c C-t" 'martin-vterm-other-window)
     (keymap-set map "C-c C-n" 'martin-vterm-new)
-    (keymap-set map "C-t" 'martin-vterm-copy-mode-or-insert)
 
     ;; Magit
     
@@ -165,11 +169,13 @@
     (keymap-set map "M-n" 'martin-org-insert-heading)
     
     (keymap-set map "M-q" 'org-agenda-list)
+    (keymap-set map "C-c C-q" 'martin-org-insert-date)
     (keymap-set map "M-t" 'org-todo-list)
 
     ;; Search
 
     (keymap-set map "M-m" 'xref-find-definitions)
+    (keymap-set map "M-RET" 'martin-xref-find-definitions)
     (keymap-set map "C-s" 'isearch-forward)
     (keymap-set map "M-s" 'isearch-backward)
 
@@ -181,12 +187,16 @@
 
     (keymap-set map "C-q" 'my-compile-make)
 
+    ;; Bookmark
+
+    (keymap-set map "C-c C-o" 'martin-bookmark-set-auto)
+    (keymap-set map "C-c M-o" 'martin-bookmark-jump-last)
+    
     ;; UI
 
     (keymap-set map "M-=" 'martin-load-dark-theme)
     (keymap-set map "C-M-=" 'martin-load-light-theme)
     (keymap-set map "M-+" 'martin-ansi-colorize-buffer)
-
     map)
   "The keymap containing all my keybinding.")
 
@@ -197,6 +207,8 @@
   :group 'martin)
 
 (martin-mode 1)
+
+
 
 (provide 'init-martin-mode)
 ;;; init-martin-mode.el ends here

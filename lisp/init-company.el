@@ -10,7 +10,11 @@
   (global-company-mode 1)
   (setq company-idle-delay 0.05)
   (setq company-backends
-        '((company-capf)))
+      '((company-capf
+         company-files
+         company-keywords
+         company-dabbrev)))
+  (setq company-dabbrev-downcase nil)
   (let ((map company-active-map))
     (keymap-set map "C-p" nil)
     (keymap-set map "M-p" nil)
